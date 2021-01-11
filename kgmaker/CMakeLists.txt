@@ -1,10 +1,10 @@
-set( KARMA_KGMAKER_LIBRARIES
-     karma_kgfile
-     karma_kgwriter
+SET( KARMA_GPU_MAKER_LIBRARIES
+     kgfile
+     kgwriter
      glslang
      SPIRV
      stdc++fs
     )
 
-add_executable       ( kgmaker main.cpp ArgumentParser.cpp ArgumentParser.h )
-target_link_libraries( kgmaker PUBLIC  ${KARMA_KGMAKER_LIBRARIES}           )
+ADD_EXECUTABLE       ( kgmaker main.cpp ArgumentParser.cpp ArgumentParser.h )
+TARGET_LINK_LIBRARIES( kgmaker PUBLIC  ${KARMA_GPU_MAKER_LIBRARIES}         )

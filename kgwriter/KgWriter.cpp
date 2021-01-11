@@ -16,6 +16,7 @@
  */
 
 #include "KgWriter.h"
+#include <kgfile/KgFile.h>
 #include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
@@ -34,7 +35,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-namespace karma
+namespace kgl
 {
   struct Shader ;
   typedef std::map<ShaderStage, Shader> ShaderMap ;
@@ -146,18 +147,22 @@ namespace karma
     /* .generalConstantMatrixVectorIndexing = */ 1,
   } ;
 
-  /**
-   * @param eshlang 
-   * @param stage 
+  /** Conversion operator to turn a GLSLang Shader language to a library shader stage.
+   * @param eshlang The language to translate.
+   * @param stage The shader stage equivalent.
    */
-  void operator<<( EShLanguage& eshlang, const ShaderStage& stage ) ;
+  static void operator<<( EShLanguage& eshlang, const ShaderStage& stage ) ;
 
-  /**
-   * @param str 
-   * @param stage 
+  /** Method to convert a string to library shader stage.
+   * @param str The string to convert.
+   * @param stage The stage equivalent of the string.
    */
-  void operator<<( std::string& str, const ShaderStage& stage ) ;
-
+  static void operator<<( std::string& str, const ShaderStage& stage ) ;
+  
+  /** Method to retrieve a size from inputted type ( represented by a string ).
+   * @param type_name The name of type to retrieve the size of.
+   * @return The size of the inputted type in bytes.
+   */
   static inline unsigned sizeFromType( std::string type_name ) ;
 
   unsigned sizeFromType( std::string type_name )
@@ -178,7 +183,7 @@ namespace karma
     else { std::cout << "Unknown type : " << type_name << std::endl ; exit( -1 ) ; } ;
   }
 
-  /**
+  /** Structure to encompass a GLSL Uniform
    */
   struct Uniform
   {
@@ -188,6 +193,8 @@ namespace karma
     std::string name    ;
   };
 
+  /** Structure to encompass a GLSL Attribute.
+   */
   struct Attribute
   {
     bool        input    ;
@@ -197,7 +204,7 @@ namespace karma
     unsigned    location ;
   };
 
-  /** TODO
+  /** Structure to encompass a single shader shader.
    */
   struct Shader
   {
@@ -212,67 +219,64 @@ namespace karma
     std::string   name       ;
   };
 
-  /**
+  /** Structure containing the data of a shader iterator.
    */
   struct ShaderIteratorData
   {
     ShaderMap::const_iterator it ;
   };
 
-  /**
-   */
   struct KgWriterData
   {
-    std::string include_directory ;
-    ShaderMap   map               ;
+    std::string include_directory ; ///< The include directory for the shaders being compiled.
+    ShaderMap   map               ; ///< The map of shader types to shader stages.
 
-    /**
-     * @param data
-     * @param type 
+    /** Method to load a shader.
+     * @param data The byte data of the GLSL shader.
+     * @param type The type of shader being loaded.
      */
     void loadShader( const char* data, ShaderStage type ) ;
 
-    /**
-     * @param data
-     * @param stage
+    /** Method to parse attributes from a GLSL shader.
+     * @param data The byte data of the GLSL shader to parse.
+     * @param stage The type of shader being loaded.
      */
     void parseAttributes( const char* data, ShaderStage stage ) ;
 
-    /**
-     * @param map 
-     * @param program 
-     * @param stage_flag 
+    /** Method to generate descriptor set information for each shader.
+     * @param map The shader map to store the uniform information into.
+     * @param program The GLSL program to use for GLSL uniform reflection.
      */
     void generateDescriptorSetBindings( Shader& map, glslang::TProgram& program ) ;
 
-    /**
-     * @param stream 
-     * @param str 
+    /** Method to write a string out to a file stream.
+     * @param stream The stream to write to.
+     * @param str The string to write.
      */
     void writeString( std::ofstream& stream, std::string str ) const ;
 
-    /**
-     * @param stream 
-     * @param num 
+    /** Method to write an unsigned integer to a file stream.
+     * @param stream The stream to write to.
+     * @param num The integer to write out.
      */
     void writeUnsigned( std::ofstream& stream, unsigned num ) const ;
 
-    /**
-     * @param stream 
-     * @param val 
+    /** Method to write a boolean value to a file stream.
+     * @param stream The stream to write to.
+     * @param val The boolean value to write.
      */
     void writeBoolean( std::ofstream& stream, bool val ) const ;
 
-    /**
-     * @param stream 
-     * @param magic 
+    /** Method to write the file's magic number to a file stream.
+     * @param stream The stream to write to.
+     * @param magic The magic number to write.
      */
     void writeMagic( std::ofstream& stream, unsigned long long magic ) const ;
 
-    /**
-     * @param stream 
-     * @param sz 
-     * @param spirv 
+    /** Method to write a stream of bytes ( SPIRV ) to a file stream.
+     * @param stream The stream to write to.
+     * @param sz The amount of bytes in the compiled SPIRV to write.
+     * @param spirv The pointer to the SPIRV data.
      */
     void writeSpirv( std::ofstream& stream, unsigned sz, const unsigned* spirv ) const ;
   };
@@ -377,6 +381,7 @@ namespace karma
               }
             }
             line = "" ;
+            
             /// Get type information.
             file_data >> token                    ;
             attr.type     = token                 ; 
@@ -465,7 +470,6 @@ namespace karma
       uniform.size    = complete_string.find( " buffer " ) != std::string::npos ? 1 : program.getUniformArraySize( i ) ;
       uniform.type    = complete_string.find( " buffer " ) != std::string::npos ? UniformType::SSBO : UniformType::UBO ;
       
-      std::cout << name << " BINDING " << uniform.binding << std::endl ;
       if( uniform.binding < INT_MAX ) 
       {
         shader.uniforms.push_back( uniform ) ;

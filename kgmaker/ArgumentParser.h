@@ -18,96 +18,91 @@
 #ifndef KARMA_FILE_ARG_PARSER_H
 #define KARMA_FILE_ARG_PARSER_H
 
-namespace karma
+namespace kgl
 {
-  namespace file
+  /** Class for parsing arguments to the KG file generator.
+   */
+  class ArgumentParser
   {
-    /** TODO
-     */
-    class ArgumentParser
-    {
-      public:
-      
-        /**
-         */
-        ArgumentParser() ;
+    public:
 
-        /**
-         */
-        ~ArgumentParser() ;
+      /** Default constructor.
+       */
+      ArgumentParser() ;
 
-        /**
-         * @param argc 
-         * @param argv 
-         */
-        void parse( int argc, const char** argv ) ;
+      /** Default deconstructor.
+       */
+      ~ArgumentParser() ;
 
-        /**
-         * @return unsigned 
-         */
-        unsigned getNumberOfInputs() const ;
+      /** Method to parge input arguments.
+       * @param argc The amount of arguments to parse.
+       * @param argv The string pointer of the arguments.
+       */
+      void parse( int argc, const char** argv ) ;
 
-        /**
-         * @return true 
-         * @return false 
-         */
-        bool recursive() const ;
+      /** Method to retrieve the number of inputs to KG generator.
+       * @return unsigned The amount of inputs.
+       */
+      unsigned getNumberOfInputs() const ;
 
-        /**
-         * @return const char* 
-         */
-        const char* recursionDirectory() const ;
-        
-        /**
-         * @return 
-         */
-        bool verbose() const ;
-        
+      /** Method to retrieve whether or not the shader generation is to recursively look into the input directory.
+       * @return Whether or not the shader generation is to look recursively for shaders.
+       */
+      bool recursive() const ;
 
-        /**
-         * @param index 
-         * @return const char* 
-         */
-        const char* getFilePath( unsigned index ) const ;
-        
-        /**
-         * @param index
-         * @return 
-         */
-        const char* output() const ;
+      /** Method to retrieve the directory to use for recursive loading.
+       * @return const char* The string to the path on the filesystem to recursively look through.
+       */
+      const char* recursionDirectory() const ;
 
-        /**
-         * @return const char* 
-         */
-        const char* usage() const ;
+      /** Method to retrieve whether or not the KGMaker program should produce verbose output.
+       * @return Whether or not the KGMaker program should produce verbose output.
+       */
+      bool verbose() const ;
 
-        /**
-         * @param index 
-         * @return int 
-         */
-        int getShaderType( unsigned index ) const ;
 
-        /**
-         * @return true 
-         * @return false 
-         */
-        bool valid() const ;
-      private:
+      /** Method to retrieve the file path for the specified index of input.
+       * @param index The index of input to receive the file path of.
+       * @return const char* The string representation to the shader on the filesystem.
+       */
+      const char* getFilePath( unsigned index ) const ;
 
-        /**
-         */
-        struct ArgParserData* arg_data ;
+      /** Method to retrieve the output file path to use.
+       * @return The output file path to save shader information to.
+       */
+      const char* output() const ;
 
-        /**
-         * @return ArgParserData& 
-         */
-        ArgParserData& data() ;
+      /** Method to retrieve the usage of this program.
+       * @return const char* The string message containing the usage of this program.
+       */
+      const char* usage() const ;
 
-        /**
-         * @return const ArgParserData& 
-         */
-        const ArgParserData& data() const ;
-    };
-  }
+      /** Method to retrieve the shader type of the input at the specified index.
+       * @param index The index of input to retrieve the shader type of.
+       * @return int The shader type of the input, as directed by the extension.
+       */
+      int getShaderType( unsigned index ) const ;
+
+      /** Method to retrieve whether or not the passed in arguments are valid.
+       * @return Whether or not the passed in arguments are valid.
+       */
+      bool valid() const ;
+
+    private:
+
+      /** Forward-declared structure to contain this object's internal data.
+       */
+      struct ArgParserData* arg_data ;
+
+      /** Method to retrieve a reference to this object's internal data.
+       * @return Reference to this object's internal data.
+       */
+      ArgParserData& data() ;
+
+      /** Method to retrieve a const-reference to this object's internal data.
+       * @return Const-reference to this object's internal data.
+       */
+      const ArgParserData& data() const ;
+  };
 }
 #endif

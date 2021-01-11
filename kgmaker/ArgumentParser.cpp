@@ -16,165 +16,162 @@
  */
 
 #include "ArgumentParser.h"
-#include "../shader/KgFile.h"
+#include "../kgfile/KgFile.h"
 #include <string>
 #include <vector>
 #include <map>
-namespace karma
+namespace kgl
 {
-  namespace file
+  /**
+   * @param name 
+   * @return std::string 
+   */
+  static inline std::string getExtension( const std::string& name ) ;
+
+  /**
+   * @param extension 
+   * @return ::tools::shader::ShaderStage 
+   */
+  static ::kgl::ShaderStage extensionToStage( std::string extension ) ;
+
+  struct ArgParserData
   {
-    /**
-     * @param name 
-     * @return std::string 
-     */
-    static inline std::string getExtension( const std::string& name ) ;
+    std::string              include_directory   ;
+    std::string              recursive_directory ;
+    std::string              output_path         ;
+    bool                     verbose             ;
+    std::vector<std::string> shaders_paths       ;
 
-    /**
-     * @param extension 
-     * @return ::tools::shader::ShaderStage 
-     */
-    static ::karma::file::ShaderStage extensionToStage( std::string extension ) ;
+    ArgParserData() ;
+  };
 
-    struct ArgParserData
+  std::string getExtension( const std::string& name )
+  {
+    return ( name.rfind( '.' ) == std::string::npos ) ? "" : name.substr( name.rfind( '.' ) + 1 ) ;
+  }
+
+  static ::kgl::ShaderStage extensionToStage( std::string extension )
+  {
+         if( extension == "frag" ) return ::kgl::ShaderStage::FRAGMENT      ;
+    else if( extension == "geom" ) return ::kgl::ShaderStage::GEOMETRY      ;
+    else if( extension == "tesc" ) return ::kgl::ShaderStage::TESSALATION_C ;
+    else if( extension == "tess" ) return ::kgl::ShaderStage::TESSELATION_E ;
+    else if( extension == "comp" ) return ::kgl::ShaderStage::COMPUTE       ;
+    else if( extension == "vert" ) return ::kgl::ShaderStage::VERTEX        ;
+
+    return ::kgl::ShaderStage::VERTEX ;
+  }
+
+  ArgParserData::ArgParserData()
+  {
+    this->include_directory   = ""        ;
+    this->recursive_directory = ""        ;
+    this->output_path         = "out.uwu" ;
+    this->shaders_paths       = {}        ;
+    this->verbose             = false     ;
+  }
+
+  ArgumentParser::ArgumentParser()
+  {
+    this->arg_data = new ArgParserData() ;
+  }
+
+  ArgumentParser::~ArgumentParser()
+  {
+    delete this->arg_data ;
+  }
+
+  void ArgumentParser::parse( int num_inputs, const char** argv )
+  {
+    std::string buffer ;
+
+    for( unsigned index = 1; index < static_cast<unsigned>( num_inputs ); index++ )
     {
-      std::string              include_directory   ;
-      std::string              recursive_directory ;
-      std::string              output_path         ;
-      bool                     verbose             ;
-      std::vector<std::string> shaders_paths       ;
+      buffer = std::string( argv[ index ] ) ;
 
-      ArgParserData() ;
-    };
+      if     ( buffer == "-i" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().include_directory   = std::string( argv[ index + 1 ] ) ; index++ ; }
+      else if( buffer == "-o" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().output_path         = std::string( argv[ index + 1 ] ) ; index++ ; }
+      else if( buffer == "-r" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().recursive_directory = std::string( argv[ index + 1 ] ) ; index++ ; }
+      else if( buffer == "-v"                                 ) { data().verbose             = true                             ;           }
+      else                                                      { data().shaders_paths.push_back( std::string( argv[ index ] ) )          ; }
+    }
+  }
 
-    std::string getExtension( const std::string& name )
+  bool ArgumentParser::verbose() const
+  {
+    return data().verbose ;
+  }
+
+  bool ArgumentParser::recursive() const
+  {
+    return data().recursive_directory != "" ;
+  }
+
+  const char* ArgumentParser::output() const
+  {
+    std::string extention ;
+
+    extention = ".kg" ;
+    for( auto path : data().shaders_paths )
     {
-      return ( name.rfind( '.' ) == std::string::npos ) ? "" : name.substr( name.rfind( '.' ) + 1 ) ;
+      if( path.find( ".comp" ) != std::string::npos ) extention = ".kgc" ;
+    }
+    return ( data().output_path + extention ).c_str() ;
+  }
+
+  const char* ArgumentParser::recursionDirectory() const
+  {
+    return data().recursive_directory.c_str() ;
+  }
+
+  int ArgumentParser::getShaderType( unsigned index ) const
+  {
+    if( index < data().shaders_paths.size () ) 
+    {
+      return ::kgl::extensionToStage( ::kgl::getExtension( data().shaders_paths.at( index ) ) ) ;
     }
 
-    static ::karma::file::ShaderStage extensionToStage( std::string extension )
-    {
-           if( extension == "frag" ) return ::karma::file::ShaderStage::FRAGMENT      ;
-      else if( extension == "geom" ) return ::karma::file::ShaderStage::GEOMETRY      ;
-      else if( extension == "tesc" ) return ::karma::file::ShaderStage::TESSALATION_C ;
-      else if( extension == "tess" ) return ::karma::file::ShaderStage::TESSELATION_E ;
-      else if( extension == "comp" ) return ::karma::file::ShaderStage::COMPUTE       ;
-      else if( extension == "vert" ) return ::karma::file::ShaderStage::VERTEX        ;
+    return 0 ;
+  }
 
-      return ::karma::file::ShaderStage::VERTEX ;
-    }
+  unsigned ArgumentParser::getNumberOfInputs() const
+  {
+    return data().shaders_paths.size() ;
+  }
 
-    ArgParserData::ArgParserData()
-    {
-      this->include_directory   = ""        ;
-      this->recursive_directory = ""        ;
-      this->output_path         = "out.uwu" ;
-      this->shaders_paths       = {}        ;
-      this->verbose             = false     ;
-    }
+  const char* ArgumentParser::getFilePath( unsigned index ) const
+  {
+    return index < data().shaders_paths.size() ? data().shaders_paths[ index ].c_str() : "" ;
+  }
 
-    ArgumentParser::ArgumentParser()
-    {
-      this->arg_data = new ArgParserData() ;
-    }
+  const char* ArgumentParser::usage() const
+  {
+    static const std::string program_usage = std::string( 
+    "Usage:: kgmaker <shader.type1> <shader2.type2> ... <options>\n"  
+    "  Options: -r <directory>\n"                                       
+    "              -> Recursively parses all files in the directory.\n" 
+    "           -i <directory>\n"                                 
+    "              -> Sets the directory on the filesystem to use as the include directory for GLSL shader compilation.\n" 
+    "           -v\n"                                                   
+    "              -> Verbose output.\n"
+    "           -o <name>\n"                                                   
+    "              -> The output name, if not using recursive. File extension is automatically appended to input\n"
+                                                        ) ;
+    return program_usage.c_str() ;
+  }
 
-    ArgumentParser::~ArgumentParser()
-    {
-      delete this->arg_data ;
-    }
+  bool ArgumentParser::valid() const
+  {
+    return !data().shaders_paths.empty() ;
+  }
 
-    void ArgumentParser::parse( int num_inputs, const char** argv )
-    {
-      std::string buffer ;
-      
-      for( unsigned index = 1; index < static_cast<unsigned>( num_inputs ); index++ )
-      {
-        buffer = std::string( argv[ index ] ) ;
+  ArgParserData& ArgumentParser::data()
+  {
+    return *this->arg_data ;
+  }
 
-        if     ( buffer == "-i" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().include_directory   = std::string( argv[ index + 1 ] ) ; index++ ; }
-        else if( buffer == "-o" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().output_path         = std::string( argv[ index + 1 ] ) ; index++ ; }
-        else if( buffer == "-r" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().recursive_directory = std::string( argv[ index + 1 ] ) ; index++ ; }
-        else if( buffer == "-v"                                 ) { data().verbose             = true                             ;           }
-        else                                                      { data().shaders_paths.push_back( std::string( argv[ index ] ) )          ; }
-      }
-    }
-    
-    bool ArgumentParser::verbose() const
-    {
-      return data().verbose ;
-    }
-
-    bool ArgumentParser::recursive() const
-    {
-      return data().recursive_directory != "" ;
-    }
-    
-    const char* ArgumentParser::output() const
-    {
-      std::string extention ;
-      
-      extention = ".uwu" ;
-      for( auto path : data().shaders_paths )
-      {
-        if( path.find( ".comp" ) != std::string::npos ) extention = ".uwuc" ;
-      }
-      return ( data().output_path + extention ).c_str() ;
-    }
-
-    const char* ArgumentParser::recursionDirectory() const
-    {
-      return data().recursive_directory.c_str() ;
-    }
-
-    int ArgumentParser::getShaderType( unsigned index ) const
-    {
-      if( index < data().shaders_paths.size () ) 
-      {
-        return ::karma::file::extensionToStage( ::karma::file::getExtension( data().shaders_paths.at( index ) ) ) ;
-      }
-
-      return 0 ;
-    }
-
-    unsigned ArgumentParser::getNumberOfInputs() const
-    {
-      return data().shaders_paths.size() ;
-    }
-
-    const char* ArgumentParser::getFilePath( unsigned index ) const
-    {
-      return index < data().shaders_paths.size() ? data().shaders_paths[ index ].c_str() : "" ;
-    }
-    
-    const char* ArgumentParser::usage() const
-    {
-      static const std::string program_usage = std::string( 
-      "Usage:: glslToUWU <shader.type1> <shader2.type2> ... <options>\n"  
-      "  Options: -r <directory>\n"                                       
-      "              -> Recursively parses all files in the directory.\n" 
-      "           -i <directory>\n"                                 
-      "              -> Sets the directory on the filesystem to use as the include directory for GLSL shader compilation.\n" 
-      "           -v\n"                                                   
-      "              -> Verbose output.\n"
-      "           -o <name>\n"                                                   
-      "              -> The output name, if not using recursive. File extension is automatically appended to input\n"
-                                                          ) ;
-      return program_usage.c_str() ;
-    }
-
-    bool ArgumentParser::valid() const
-    {
-      return !data().shaders_paths.empty() ;
-    }
-
-    ArgParserData& ArgumentParser::data()
-    {
-      return *this->arg_data ;
-    }
-
-    const ArgParserData& ArgumentParser::data() const
-    {
-      return *this->arg_data ;
-    }
+  const ArgParserData& ArgumentParser::data() const
+  {
+    return *this->arg_data ;
   }
 }

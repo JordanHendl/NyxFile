@@ -1,12 +1,12 @@
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.0 )
 
-set( CMAKE_CXX_STANDARD          17  )
-set( CMAKE_CXX_STANDARD_REQUIRED ON  )
-set( CMAKE_CXX_EXTENSIONS        OFF )
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR} )
 
-add_subdirectory( glslang  ) 
-add_subdirectory( kgwriter ) 
-add_subdirectory( kgmaker  ) 
-add_subdirectory( shader   ) 
+SET( CMAKE_CXX_STANDARD          17  )
+SET( CMAKE_CXX_STANDARD_REQUIRED ON  )
+SET( CMAKE_CXX_EXTENSIONS        OFF )
 
-
+ADD_SUBDIRECTORY( glslang  ) 
+ADD_SUBDIRECTORY( kgwriter ) 
+ADD_SUBDIRECTORY( kgfile   )
+ADD_SUBDIRECTORY( kgmaker  ) 

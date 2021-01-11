@@ -16,31 +16,15 @@
  */
 
 
-#ifndef KARMA_WRITER_H
-#define KARMA_WRITER_H
+#ifndef KARMA_GPU_WRITER_H
+#define KARMA_GPU_WRITER_H
 
-namespace karma
+namespace kgl
 {
   /** The Shader stage this shader 
    */
-  enum ShaderStage : unsigned
-  {
-    VERTEX,
-    FRAGMENT,
-    GEOMETRY,
-    TESSALATION_C,
-    TESSELATION_E,
-    COMPUTE,
-  };
-  
-  enum UniformType : unsigned
-  {
-    None,
-    UBO,
-    SAMPLER,
-    IMAGE,
-    SSBO
-  };
+  enum ShaderStage : unsigned ;
+  enum UniformType : unsigned ;
   
   /** Class to manage writing & reading KgFile's to disk.
    */
