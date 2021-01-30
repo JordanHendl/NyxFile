@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KARMA_GPU_FILE_H
-#define KARMA_GPU_FILE_H
+#ifndef NYX_GPU_FILE_H
+#define NYX_GPU_FILE_H
 
-namespace kgl
+namespace nyx
 {
-  class KgFile ;
+  class NyxFile ;
   
   /** The Shader stages possible for a KgFile to contain.
    */
@@ -175,22 +175,22 @@ namespace kgl
 
       /** Forward declare friendship.
        */
-      friend class KgFile ;
+      friend class NyxFile ;
   };
 
   /** Class to abstract a KgFile.
    */
-  class KgFile
+  class NyxFile
   {
     public:
 
       /** Default constructor. 
        */
-      KgFile() ;
+      NyxFile() ;
 
       /** Default deconstructor.
        */
-      ~KgFile() ;
+      ~NyxFile() ;
 
       /** Method to load the specified .kg file at the input path.
        * @param The C-string path of the file on the filesystem to load.
@@ -215,17 +215,17 @@ namespace kgl
 
       /** Forward declared structure containing this object's data.
        */
-      struct KgFileData* compiler_data ;
+      struct NyxFileData* compiler_data ;
 
       /** Method to retrieve a reference to this object's internal data structure.
        * @return Reference to this object's internal data structure.
        */
-      KgFileData& data() ;
+      NyxFileData& data() ;
 
       /** Method to retrieve a const-reference to this object's internal data structure.
        * @return Const-reference to this object's internal data structure.
        */
-      const KgFileData& data() const ;
+      const NyxFileData& data() const ;
   };
 }
 #endif

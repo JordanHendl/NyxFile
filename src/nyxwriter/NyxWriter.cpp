@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "KgWriter.h"
-#include <kgfile/KgFile.h>
+#include "NyxWriter.h"
+#include <nyxfile/NyxFile.h>
 #include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
@@ -35,7 +35,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-namespace kgl
+namespace nyx
 {
   struct Shader ;
   typedef std::map<ShaderStage, Shader> ShaderMap ;
@@ -226,7 +226,7 @@ namespace kgl
     ShaderMap::const_iterator it ;
   };
 
-  struct KgWriterData
+  struct NyxWriterData
   {
     std::string include_directory ; ///< The include directory for the shaders being compiled.
     ShaderMap   map               ; ///< The map of shader types to shader stages.
@@ -309,7 +309,7 @@ namespace kgl
     }
   }
 
-  void KgWriterData::parseAttributes( const char* data, ShaderStage stage )
+  void NyxWriterData::parseAttributes( const char* data, ShaderStage stage )
   {
     auto shader = this->map.find( stage ) ;
 
@@ -401,7 +401,7 @@ namespace kgl
     }
   }
 
-  void KgWriterData::writeString( std::ofstream& stream, std::string val ) const
+  void NyxWriterData::writeString( std::ofstream& stream, std::string val ) const
   {
     unsigned sz ;
 
@@ -410,27 +410,27 @@ namespace kgl
     stream.write( (char*)&val[0], sz             ) ;
   }
 
-  void KgWriterData::writeMagic( std::ofstream& stream, unsigned long long val ) const
+  void NyxWriterData::writeMagic( std::ofstream& stream, unsigned long long val ) const
   {
     stream.write( (char*)&val, sizeof( unsigned long long ) ) ;
   }
 
-  void KgWriterData::writeUnsigned( std::ofstream& stream, unsigned val ) const
+  void NyxWriterData::writeUnsigned( std::ofstream& stream, unsigned val ) const
   {
     stream.write( (char*)&val, sizeof( unsigned ) ) ;
   }
 
-  void KgWriterData::writeBoolean( std::ofstream& stream, bool val ) const
+  void NyxWriterData::writeBoolean( std::ofstream& stream, bool val ) const
   {
     stream.write( (char*)&val, sizeof( bool ) ) ;
   }
 
-  void KgWriterData::writeSpirv( std::ofstream& stream, unsigned sz, const unsigned* spirv ) const
+  void NyxWriterData::writeSpirv( std::ofstream& stream, unsigned sz, const unsigned* spirv ) const
   {
     stream.write( (char*)spirv, sz * sizeof( unsigned ) ) ;
   }
 
-  void KgWriterData::generateDescriptorSetBindings( Shader& shader, glslang::TProgram& program )
+  void NyxWriterData::generateDescriptorSetBindings( Shader& shader, glslang::TProgram& program )
   {
     std::string name    ; 
     Uniform     uniform ;
@@ -477,7 +477,7 @@ namespace kgl
     }
   }
 
-  void KgWriterData::loadShader( const char* data, ShaderStage type )
+  void NyxWriterData::loadShader( const char* data, ShaderStage type )
   {
     static bool glslang_initialized = false ;
 
@@ -525,6 +525,7 @@ namespace kgl
       std::cout << "GLSL Preprocessing Failed for: " << stage_name << std::endl ;
       std::cout << glslang_shader.getInfoLog()                     << std::endl ;
       std::cout << glslang_shader.getInfoDebugLog()                << std::endl ;
+      exit( -1 ) ;
     }
 
     // For some reason i have to do this as well. I cannot just use the c_str() directly.
@@ -536,6 +537,7 @@ namespace kgl
       std::cout << "GLSL Parsing Failed for: " << stage_name << std::endl ;
       std::cout << glslang_shader.getInfoLog()               << std::endl ;
       std::cout << glslang_shader.getInfoDebugLog()          << std::endl ;
+      exit( -1 ) ;
     }
 
     program.addShader( &glslang_shader ) ;
@@ -544,6 +546,7 @@ namespace kgl
       std::cout << "GLSL Program Linking Failed for: " << stage_name << std::endl ;
       std::cout << program.getInfoLog()                       << std::endl ;
       std::cout << program.getInfoDebugLog()                  << std::endl ;
+      exit( -1 ) ;
     }
 
     glslang::GlslangToSpv( *program.getIntermediate( lang_type ), shader.spirv, &logger, &options ) ;
@@ -554,17 +557,17 @@ namespace kgl
     this->map.insert( { type, shader } ) ;
    }
   
-  KgWriter::KgWriter()
+  NyxWriter::NyxWriter()
   {
-    this->compiler_data = new KgWriterData() ;
+    this->compiler_data = new NyxWriterData() ;
   }
 
-  KgWriter::~KgWriter()
+  NyxWriter::~NyxWriter()
   {
     delete this->compiler_data ;
   }
 
-  void KgWriter::save( const char* path )
+  void NyxWriter::save( const char* path )
   {
     unsigned  spirv_size     ;
     unsigned* spirv          ;
@@ -637,28 +640,28 @@ namespace kgl
     }
   }
 
-  void KgWriter::setIncludeDirectory( const char* include_directory )
+  void NyxWriter::setIncludeDirectory( const char* include_directory )
   {
     data().include_directory = include_directory ;
   }
 
-  unsigned KgWriter::size() const
+  unsigned NyxWriter::size() const
   {
     return data().map.size() ;
   }
 
-  void KgWriter::compile( ShaderStage stage, const char* shader_data )
+  void NyxWriter::compile( ShaderStage stage, const char* shader_data )
   {
     this->data().loadShader                                         ( shader_data, stage ) ;
     if( stage != ShaderStage::COMPUTE ) this->data().parseAttributes( shader_data, stage ) ;
   }
 
-  KgWriterData& KgWriter::data()
+  NyxWriterData& NyxWriter::data()
   {
     return *this->compiler_data ;
   }
 
-  const KgWriterData& KgWriter::data() const
+  const NyxWriterData& NyxWriter::data() const
   {
     return *this->compiler_data ;
   }

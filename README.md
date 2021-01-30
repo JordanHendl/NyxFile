@@ -1,1 +1,10 @@
-KgFile libraries for importing and parsing saved .kg karma graphics files, as well as KgMaker executable for creating a .kg file from input GLSL shader files.
+# NyxFile
+NyxFile is the executable for building and creating .nyx files for use in the Nyx GPU library.
+
+.NYX Files are basically just shader binaries with reflection data built in.
+
+## Usage
+Usage: nyxmaker <options> <shader1> <shader2> <shader...> 
+
+## Install
+Installs to /usr/local/bin/NyxFile 

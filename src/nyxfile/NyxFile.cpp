@@ -16,7 +16,7 @@
  */
 
 
-#include "KgFile.h"
+#include "NyxFile.h"
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -32,10 +32,10 @@
 #include <limits.h>
 #include <stdlib.h>
 
-namespace kgl
+namespace nyx
 {
   struct Shader ;
-  typedef std::map<kgl::ShaderStage, Shader> ShaderMap ;
+  typedef std::map<nyx::ShaderStage, Shader> ShaderMap ;
 
   const unsigned long long MAGIC = 0x555755200d0a ;
 
@@ -96,7 +96,7 @@ namespace kgl
     ShaderMap::const_iterator it ;
   };
 
-  struct KgFileData
+  struct NyxFileData
   {
       std::string include_directory ;
       ShaderMap   map               ;
@@ -133,7 +133,7 @@ namespace kgl
     unsigned* readSpirv( std::ifstream& stream, unsigned sz ) const ;
   };
 
-  std::string KgFileData::readString( std::ifstream& stream ) const
+  std::string NyxFileData::readString( std::ifstream& stream ) const
   {
     unsigned    sz  ;
     std::string out ;
@@ -145,7 +145,7 @@ namespace kgl
     return out ;
   }
 
-  unsigned KgFileData::readUnsigned( std::ifstream& stream ) const
+  unsigned NyxFileData::readUnsigned( std::ifstream& stream ) const
   {
     unsigned val ;
 
@@ -153,7 +153,7 @@ namespace kgl
     return val ;
   }
 
-  bool KgFileData::readBoolean( std::ifstream& stream ) const
+  bool NyxFileData::readBoolean( std::ifstream& stream ) const
   {
     bool val ;
 
@@ -161,7 +161,7 @@ namespace kgl
     return val ;
   }
 
-  unsigned long long KgFileData::readMagic( std::ifstream& stream ) const
+  unsigned long long NyxFileData::readMagic( std::ifstream& stream ) const
   {
     unsigned long long val ;
 
@@ -169,7 +169,7 @@ namespace kgl
     return val ;
   }
 
-  unsigned* KgFileData::readSpirv( std::ifstream& stream, unsigned sz ) const
+  unsigned* NyxFileData::readSpirv( std::ifstream& stream, unsigned sz ) const
   {
     unsigned* data = new unsigned[ sz ] ;
     stream.read( (char*)data, sz * sizeof( unsigned ) ) ;
@@ -291,25 +291,25 @@ namespace kgl
     return *this->shader_iterator_data ;
   }
 
-  KgFile::KgFile()
+  NyxFile::NyxFile()
   {
-    this->compiler_data = new KgFileData() ;
+    this->compiler_data = new NyxFileData() ;
   }
 
-  KgFile::~KgFile()
+  NyxFile::~NyxFile()
   {
     delete this->compiler_data ;
   }
 
-  void KgFile::load( const char* path )
+  void NyxFile::load( const char* path )
   {
     std::ifstream              stream  ;
     std::string                str     ;
     unsigned                   sz      ;
     unsigned long long         magic   ;
-    ::kgl::Shader      shader  ;
-    ::kgl::Uniform     uniform ;
-    ::kgl::Attribute   attr    ;
+    ::nyx::Shader      shader  ;
+    ::nyx::Uniform     uniform ;
+    ::nyx::Attribute   attr    ;
 
     data().map.clear() ;
     stream.open( path, std::ios::binary ) ;
@@ -317,7 +317,7 @@ namespace kgl
     if( stream )
     {
       magic = data().readMagic( stream ) ;        
-      if( magic != ::kgl::MAGIC ) /*TODO: LOG ERROR HERE */ return ;
+      if( magic != ::nyx::MAGIC ) /*TODO: LOG ERROR HERE */ return ;
 
       sz = data().readUnsigned( stream ) ;
       for( unsigned it = 0; it < sz; it++ )
@@ -334,7 +334,7 @@ namespace kgl
         shader.spirv     .assign( spirv, spirv + spirv_size ) ;
         shader.uniforms  .resize( num_uniforms              ) ;
         shader.attributes.resize( num_attributes            ) ;
-        shader.stage = static_cast<::kgl::ShaderStage>( stage ) ;
+        shader.stage = static_cast<::nyx::ShaderStage>( stage ) ;
         for( unsigned index = 0; index < num_uniforms; index++ )
         {
            const std::string name         = data().readString  ( stream ) ;
@@ -343,7 +343,7 @@ namespace kgl
            const unsigned uniform_size    = data().readUnsigned( stream ) ;
 
            uniform.name    = name                                                    ;
-           uniform.type    = static_cast<::kgl::UniformType>( uniform_type ) ;
+           uniform.type    = static_cast<::nyx::UniformType>( uniform_type ) ;
            uniform.binding = uniform_binding                                         ;
            uniform.size    = uniform_size                                            ;
 
@@ -371,7 +371,7 @@ namespace kgl
     }
   }
 
-  ShaderIterator KgFile::begin() const
+  ShaderIterator NyxFile::begin() const
   {
     ShaderIterator it ;
     it.data().it = data().map.begin() ;
@@ -379,7 +379,7 @@ namespace kgl
     return it ;
   }
 
-  ShaderIterator KgFile::end() const 
+  ShaderIterator NyxFile::end() const 
   {
     ShaderIterator it ;
     it.data().it = data().map.end() ;
@@ -387,17 +387,17 @@ namespace kgl
     return it ;
   }
 
-  unsigned KgFile::size() const
+  unsigned NyxFile::size() const
   {
     return data().map.size() ;
   }
 
-  KgFileData& KgFile::data()
+  NyxFileData& NyxFile::data()
   {
     return *this->compiler_data ;
   }
 
-  const KgFileData& KgFile::data() const
+  const NyxFileData& NyxFile::data() const
   {
     return *this->compiler_data ;
   }

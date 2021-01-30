@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KARMA_FILE_ARG_PARSER_H
-#define KARMA_FILE_ARG_PARSER_H
+#ifndef NYX_FILE_ARG_PARSER_H
+#define NYX_FILE_ARG_PARSER_H
 
-namespace kgl
+namespace nyx
 {
-  /** Class for parsing arguments to the KG file generator.
+  /** Class for parsing arguments to the Nyx file generator.
    */
   class ArgumentParser
   {
@@ -40,7 +40,7 @@ namespace kgl
        */
       void parse( int argc, const char** argv ) ;
 
-      /** Method to retrieve the number of inputs to KG generator.
+      /** Method to retrieve the number of inputs to Nyx generator.
        * @return unsigned The amount of inputs.
        */
       unsigned getNumberOfInputs() const ;
@@ -55,11 +55,15 @@ namespace kgl
        */
       const char* recursionDirectory() const ;
 
-      /** Method to retrieve whether or not the KGMaker program should produce verbose output.
-       * @return Whether or not the KGMaker program should produce verbose output.
+      /** Method to retrieve whether or not the NyxMaker program should produce verbose output.
+       * @return Whether or not the NyxMaker program should produce verbose output.
        */
       bool verbose() const ;
 
+      /** Method to get the include directory, if any, set by the passed in arguments.
+       * @return The string representation of the include directory on the file systems.
+       */
+      const char* getIncludeDirectory() const ;
 
       /** Method to retrieve the file path for the specified index of input.
        * @param index The index of input to receive the file path of.

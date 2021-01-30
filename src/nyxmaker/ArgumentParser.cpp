@@ -16,11 +16,11 @@
  */
 
 #include "ArgumentParser.h"
-#include "../kgfile/KgFile.h"
+#include "../nyxfile/NyxFile.h"
 #include <string>
 #include <vector>
 #include <map>
-namespace kgl
+namespace nyx
 {
   /**
    * @param name 
@@ -32,7 +32,7 @@ namespace kgl
    * @param extension 
    * @return ::tools::shader::ShaderStage 
    */
-  static ::kgl::ShaderStage extensionToStage( std::string extension ) ;
+  static ::nyx::ShaderStage nameToStage( std::string extension ) ;
 
   struct ArgParserData
   {
@@ -50,16 +50,16 @@ namespace kgl
     return ( name.rfind( '.' ) == std::string::npos ) ? "" : name.substr( name.rfind( '.' ) + 1 ) ;
   }
 
-  static ::kgl::ShaderStage extensionToStage( std::string extension )
+  static ::nyx::ShaderStage nameToStage( std::string name )
   {
-         if( extension == "frag" ) return ::kgl::ShaderStage::FRAGMENT      ;
-    else if( extension == "geom" ) return ::kgl::ShaderStage::GEOMETRY      ;
-    else if( extension == "tesc" ) return ::kgl::ShaderStage::TESSALATION_C ;
-    else if( extension == "tess" ) return ::kgl::ShaderStage::TESSELATION_E ;
-    else if( extension == "comp" ) return ::kgl::ShaderStage::COMPUTE       ;
-    else if( extension == "vert" ) return ::kgl::ShaderStage::VERTEX        ;
+         if( name.find( "frag" ) != std::string::npos ) return ::nyx::ShaderStage::FRAGMENT      ;
+    else if( name.find( "geom" ) != std::string::npos ) return ::nyx::ShaderStage::GEOMETRY      ;
+    else if( name.find( "tesc" ) != std::string::npos ) return ::nyx::ShaderStage::TESSALATION_C ;
+    else if( name.find( "tess" ) != std::string::npos ) return ::nyx::ShaderStage::TESSELATION_E ;
+    else if( name.find( "comp" ) != std::string::npos ) return ::nyx::ShaderStage::COMPUTE       ;
+    else if( name.find( "vert" ) != std::string::npos ) return ::nyx::ShaderStage::VERTEX        ;
 
-    return ::kgl::ShaderStage::VERTEX ;
+    return ::nyx::ShaderStage::VERTEX ;
   }
 
   ArgParserData::ArgParserData()
@@ -109,14 +109,12 @@ namespace kgl
 
   const char* ArgumentParser::output() const
   {
-    std::string extention ;
+    static std::string extention ;
+    static std::string path ;
 
-    extention = ".kg" ;
-    for( auto path : data().shaders_paths )
-    {
-      if( path.find( ".comp" ) != std::string::npos ) extention = ".kgc" ;
-    }
-    return ( data().output_path + extention ).c_str() ;
+    extention = ".nyx" ;
+    path = data().output_path + extention ;
+    return path.c_str() ;
   }
 
   const char* ArgumentParser::recursionDirectory() const
@@ -128,7 +126,7 @@ namespace kgl
   {
     if( index < data().shaders_paths.size () ) 
     {
-      return ::kgl::extensionToStage( ::kgl::getExtension( data().shaders_paths.at( index ) ) ) ;
+      return ::nyx::nameToStage(  data().shaders_paths.at( index ) ) ;
     }
 
     return 0 ;
@@ -138,7 +136,12 @@ namespace kgl
   {
     return data().shaders_paths.size() ;
   }
-
+  
+  const char* ArgumentParser::getIncludeDirectory() const
+  {
+    return data().include_directory.c_str() ;
+  }
+  
   const char* ArgumentParser::getFilePath( unsigned index ) const
   {
     return index < data().shaders_paths.size() ? data().shaders_paths[ index ].c_str() : "" ;
@@ -147,7 +150,7 @@ namespace kgl
   const char* ArgumentParser::usage() const
   {
     static const std::string program_usage = std::string( 
-    "Usage:: kgmaker <shader.type1> <shader2.type2> ... <options>\n"  
+    "Usage:: nyxmaker <shader.type1> <shader2.type2> ... <options>\n"  
     "  Options: -r <directory>\n"                                       
     "              -> Recursively parses all files in the directory.\n" 
     "           -i <directory>\n"                                 
@@ -156,7 +159,7 @@ namespace kgl
     "              -> Verbose output.\n"
     "           -o <name>\n"                                                   
     "              -> The output name, if not using recursive. File extension is automatically appended to input\n"
-                                                        ) ;
+                                                     ) ;
     return program_usage.c_str() ;
   }
 

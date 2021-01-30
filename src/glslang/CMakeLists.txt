@@ -23,7 +23,7 @@ set(LIB_TYPE STATIC)
 if(BUILD_SHARED_LIBS)
     set(LIB_TYPE SHARED)
 endif()
-
+SET( SKIP_GLSLANG_INSTALL ON )
 option(SKIP_GLSLANG_INSTALL "Skip installation" ${SKIP_GLSLANG_INSTALL})
 if(NOT ${SKIP_GLSLANG_INSTALL})
   set(ENABLE_GLSLANG_INSTALL ON)
@@ -84,8 +84,6 @@ macro(glslang_pch SRCS PCHCPP)
     list(APPEND ${SRCS} "${PCHCPP}")
   endif()
 endmacro(glslang_pch)
-
-project(glslang)
 
 if(ENABLE_CTEST)
     include(CTest)
@@ -198,9 +196,6 @@ add_subdirectory(SPIRV)
 if(ENABLE_HLSL)
     add_subdirectory(hlsl)
 endif(ENABLE_HLSL)
-if(ENABLE_CTEST)
-    add_subdirectory(gtests)
-endif()
 
 if(BUILD_TESTING)
     # glslang-testsuite runs a bash script on Windows.

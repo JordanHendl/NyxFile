@@ -16,29 +16,29 @@
  */
 
 
-#ifndef KARMA_GPU_WRITER_H
-#define KARMA_GPU_WRITER_H
+#ifndef NYX_GPU_FILE_WRITER_H
+#define NYX_GPU_FILE_WRITER_H
 
-namespace kgl
+namespace nyx
 {
   /** The Shader stage this shader 
    */
   enum ShaderStage : unsigned ;
   enum UniformType : unsigned ;
   
-  /** Class to manage writing & reading KgFile's to disk.
+  /** Class to manage writing & reading NyxFile's to disk.
    */
-  class KgWriter
+  class NyxWriter
   {
     public:
       
       /** Default Constructor. 
        */
-      KgWriter() ;
+      NyxWriter() ;
 
       /** Default Deconstructor.
        */
-      ~KgWriter() ;
+      ~NyxWriter() ;
 
       /** Method to compile the shader with the specific stage and data.
        * @param stage The stage to use for the input shader data.
@@ -65,17 +65,17 @@ namespace kgl
 
         /** Forward declared structure containing this object's data.
          */
-      struct KgWriterData* compiler_data ;
+      struct NyxWriterData* compiler_data ;
 
         /** Method to retrieve a reference to this object's internal data structure.
          * @return Reference to this object's internal data structure.
          */
-      KgWriterData& data() ;
+      NyxWriterData& data() ;
 
         /** Method to retrieve a const-reference to this object's internal data structure.
          * @return Const-reference to this object's internal data structure.
          */
-      const KgWriterData& data() const ;
+      const NyxWriterData& data() const ;
   };
 }
 #endif
