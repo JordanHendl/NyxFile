@@ -31,7 +31,7 @@ LIST( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 OPTION( BUILD_NYXMAKER "Whether or not the nyxmaker executable will be built" ON )
 OPTION( BUILD_RELEASE "Whether or not the to build for release."              ON )
 
-PROJECT( NyxFile CXX )
+PROJECT( nyxfile CXX )
 INCLUDE( Message  )
 
 STRING( TIMESTAMP Date "%m %d %Y"    )
@@ -78,7 +78,7 @@ SET( GENERATOR    "RPM"   CACHE STRING "The Package Generator to use for this bu
 IF( WIN32 )
   SET( INSTALL_LOCATION "C:/Program Files" CACHE STRING "The default NSIS install location of this library" )
 ELSEIF( UNIX AND NOT APPLE )
-  SET( INSTALL_LOCATION "/usr/local/bin" CACHE STRING "The RPM install location of this library." ) 
+  SET( INSTALL_LOCATION "/usr/local/lib64" CACHE STRING "The RPM install location of this library." ) 
 ENDIF()
 
 SET(CMAKE_CXX_STANDARD          17 )
@@ -159,4 +159,5 @@ INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/src )
 ADD_SUBDIRECTORY( src )
 
 # Install glslang license.
-INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/glslang/LICENSE.txt DESTINATION licences/glslang/ )
+INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/glslang/LICENSE.txt DESTINATION licences/glslang/     COMPONENT dev )
+INSTALL( EXPORT NyxFile FILE NyxFileConfig.cmake                   DESTINATION " " COMPONENT dev )

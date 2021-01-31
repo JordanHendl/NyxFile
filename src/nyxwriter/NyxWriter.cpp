@@ -638,6 +638,19 @@ namespace nyx
         }
       }
     }
+    else
+    {
+    #if defined ( __unix__ ) || defined( _WIN32 )
+      constexpr const char* COLOR_END    = "\x1B[m"     ;
+      constexpr const char* COLOR_RED    = "\u001b[31m" ;
+    #else
+      constexpr const char* COLOR_END    = "" ;
+      constexpr const char* COLOR_RED    = "" ;
+    #endif
+    
+      std::cout << COLOR_RED << "Unable to open file :" << path << COLOR_END << std::endl ;
+      exit( -1 ) ;
+    }
   }
 
   void NyxWriter::setIncludeDirectory( const char* include_directory )

@@ -32,6 +32,7 @@
   constexpr const char* COLOR_GREY   = "\x1B[1;30m"   ;
   constexpr const char* COLOR_CYAN   = "\u001b[36m"   ;
   constexpr const char* COLOR_BCYAN  = "\u001b[36;1m" ;
+  constexpr const char* COLOR_BOLD   = "\u001b[1m"    ;
   constexpr const char* UNDERLINE    = "\u001b[4m"    ;
 #else
   constexpr const char* COLOR_END    = "" ;
@@ -41,6 +42,7 @@
   constexpr const char* COLOR_YELLOW = "" ;
   constexpr const char* COLOR_GREY   = "" ;
   constexpr const char* COLOR_RED    = "" ;
+  constexpr const char* COLOR_BOLD   = "" ;
   constexpr const char* COLOR_WHITE  = "" ;
 #endif
 
@@ -109,7 +111,7 @@ int main( int argc, const char** argv )
     {
       if( parser.verbose() )
       {
-        std::cout << ::COLOR_CYAN <<  "Compiling: " << parser.getFilePath( i ) << ::COLOR_END << std::endl ;
+        std::cout << ::COLOR_BOLD <<  "Compiling: " << parser.getFilePath( i ) << ::COLOR_END << std::endl ;
       }
 
       stream.open( parser.getFilePath( i ) ) ;
@@ -131,33 +133,33 @@ int main( int argc, const char** argv )
     if( parser.verbose() )
     {
       shader_validator.load( parser.output() ) ;
-      std::cout << COLOR_BCYAN << "Include Directory: " << parser.getIncludeDirectory() << "\n" << COLOR_END << std::endl ;
+      std::cout << COLOR_BOLD << "Include Directory: " << parser.getIncludeDirectory() << "\n" << COLOR_END << std::endl ;
       for( auto sh = shader_validator.begin(); sh != shader_validator.end(); ++sh )
       {
-        std::cout << COLOR_CYAN << "Shader: " << parser.getFilePath( index++ )  << COLOR_END << "\n"   ;
-        std::cout << COLOR_CYAN << "  ├─Shader Stage:   " << sh.stage()         << COLOR_END << "\n"   ;
-        std::cout << COLOR_CYAN << "  ├─Num Uniforms:   " << sh.numUniforms()   << COLOR_END << "\n"   ;
-        std::cout << COLOR_CYAN << "  └─Num Attributes: " << sh.numAttributes() << COLOR_END << "\n\n" ;
+        std::cout << COLOR_BOLD << "Shader: " << parser.getFilePath( index++ )  << COLOR_END << "\n"   ;
+        std::cout << COLOR_BOLD << "  ├─Shader Stage:   " << sh.stage()         << COLOR_END << "\n"   ;
+        std::cout << COLOR_BOLD << "  ├─Num Uniforms:   " << sh.numUniforms()   << COLOR_END << "\n"   ;
+        std::cout << COLOR_BOLD << "  └─Num Attributes: " << sh.numAttributes() << COLOR_END << "\n\n" ;
         
-        if( sh.numAttributes() != 0 ) std::cout << COLOR_BCYAN << "Attributes: \n\n" << COLOR_END ;
+        if( sh.numAttributes() != 0 ) std::cout << COLOR_BOLD << "Attributes: \n\n" << COLOR_END ;
         for( unsigned i = 0; i < sh.numAttributes(); i++ )
         {
-          std::cout << COLOR_CYAN << "-- Name: " << sh.attributeName( i ) << "\n" ;
-          std::cout << COLOR_CYAN << "--   ├─Attribute Type     : " << sh.attributeType    ( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_CYAN << "--   ├─Attribute Size     : " << sh.attributeByteSize( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_CYAN << "--   ├─Attribute Location : " << sh.attributeLocation( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_CYAN << "--   └─Attribute is INPUT : " << sh.attributeIsInput ( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "-- Name: " << sh.attributeName( i ) << "\n" ;
+          std::cout << COLOR_BOLD << "--   ├─Attribute Type     : " << sh.attributeType    ( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "--   ├─Attribute Size     : " << sh.attributeByteSize( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "--   ├─Attribute Location : " << sh.attributeLocation( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "--   └─Attribute is INPUT : " << sh.attributeIsInput ( i ) << COLOR_END << "\n" ;
           std::cout << "\n" ;
         }
         
         
-        if( sh.numUniforms() != 0 ) std::cout << COLOR_BCYAN << "Uniforms: \n\n" << COLOR_END ;
+        if( sh.numUniforms() != 0 ) std::cout << COLOR_BOLD << "Uniforms: \n\n" << COLOR_END ;
         for( unsigned i = 0; i < sh.numUniforms(); i++ )
         {
-          std::cout << COLOR_CYAN << "-- Name: " << sh.uniformName( i ) << "\n" ;
-          std::cout << COLOR_CYAN << "--   ├─Uniform Binding : " << sh.uniformBinding( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_CYAN << "--   ├─Uniform Type    : " << sh.uniformType   ( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_CYAN << "--   └─Uniform Size    : " << sh.uniformSize   ( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "-- Name: " << sh.uniformName( i ) << "\n" ;
+          std::cout << COLOR_BOLD << "--   ├─Uniform Binding : " << sh.uniformBinding( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "--   ├─Uniform Type    : " << sh.uniformType   ( i ) << COLOR_END << "\n" ;
+          std::cout << COLOR_BOLD << "--   └─Uniform Size    : " << sh.uniformSize   ( i ) << COLOR_END << "\n" ;
           std::cout << "\n" ;
         }
         std::cout << std::string( 80, '-' ) << "\n\n" ;
