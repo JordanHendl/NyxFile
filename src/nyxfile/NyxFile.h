@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NYX_GPU_FILE_H
-#define NYX_GPU_FILE_H
+#pragma once
 
 namespace nyx
 {
@@ -26,12 +25,12 @@ namespace nyx
    */
   enum ShaderStage : unsigned
   {
-    VERTEX,
-    FRAGMENT,
-    GEOMETRY,
-    TESSALATION_C,
-    TESSELATION_E,
-    COMPUTE,
+    Vertex,
+    Fragment,
+    Geometry,
+    Tess_C,
+    Tess_E,
+    Compute,
   };
 
   /** The enumeration of the types of Uniform variables possible in a KgShader file.
@@ -62,7 +61,7 @@ namespace nyx
       /** Default Desconstructor.
        */
       ~ShaderIterator() ;
-
+      
       /** Method to retrieve the number of uniforms in this shader stage.
        * @return unsigned The number of uniforms in this shader stage.
        */
@@ -111,6 +110,11 @@ namespace nyx
        * @return The size of the compiled spirv of this shader stage.
        */
       unsigned spirvSize() const ;
+      
+      /** Overloaded * operator to allow range-based for loops.
+       * @return The shader stage of this iterator.
+       */
+      const ShaderIterator& operator*() const ;
 
       /** Method to retrieve the specific shader stage this iterator is representing.
        * @return The current shader stage.
@@ -155,7 +159,7 @@ namespace nyx
        * @param input The object to test this object against.
        * @return Whether or not this object is equal to the input.
        */
-      bool operator!=( const ShaderIterator& input ) ;
+      bool operator!=( const ShaderIterator& input ) const ;
 
     private:
 
@@ -191,11 +195,22 @@ namespace nyx
       /** Default deconstructor.
        */
       ~NyxFile() ;
+      
+      /** Assignment operator. Assigns the input to this object.
+       * @param file The object to assign this one to.
+       * @return Reference to this object after assignment.
+       */
+      NyxFile& operator=( const NyxFile& file ) ;
 
-      /** Method to load the specified .kg file at the input path.
+      /** Method to load the specified .nyx file at the input path.
        * @param The C-string path of the file on the filesystem to load.
        */
       void load( const char* path ) ;
+      
+      /** Method to load the specified .nyx file at the input path.
+       * @param The array of bytes containing the .nyx file's data.
+       */
+      void load( const unsigned char* bytes, unsigned size ) ;
 
       /** Method to retrieve an iterator at the beginning of this object.
        * @return Iterator starting at the beginning of this object.
@@ -228,4 +243,3 @@ namespace nyx
       const NyxFileData& data() const ;
   };
 }
-#endif

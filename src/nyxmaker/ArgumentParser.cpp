@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <map>
+
 namespace nyx
 {
   /**
@@ -39,6 +40,7 @@ namespace nyx
     std::string              include_directory   ;
     std::string              recursive_directory ;
     std::string              output_path         ;
+    bool                     output_header       ;
     bool                     verbose             ;
     std::vector<std::string> shaders_paths       ;
 
@@ -52,14 +54,14 @@ namespace nyx
 
   static ::nyx::ShaderStage nameToStage( std::string name )
   {
-         if( name.find( "frag" ) != std::string::npos ) return ::nyx::ShaderStage::FRAGMENT      ;
-    else if( name.find( "geom" ) != std::string::npos ) return ::nyx::ShaderStage::GEOMETRY      ;
-    else if( name.find( "tesc" ) != std::string::npos ) return ::nyx::ShaderStage::TESSALATION_C ;
-    else if( name.find( "tess" ) != std::string::npos ) return ::nyx::ShaderStage::TESSELATION_E ;
-    else if( name.find( "comp" ) != std::string::npos ) return ::nyx::ShaderStage::COMPUTE       ;
-    else if( name.find( "vert" ) != std::string::npos ) return ::nyx::ShaderStage::VERTEX        ;
+         if( name.find( "frag" ) != std::string::npos ) return ::nyx::ShaderStage::Fragment ;
+    else if( name.find( "geom" ) != std::string::npos ) return ::nyx::ShaderStage::Geometry ;
+    else if( name.find( "tesc" ) != std::string::npos ) return ::nyx::ShaderStage::Tess_C   ;
+    else if( name.find( "tess" ) != std::string::npos ) return ::nyx::ShaderStage::Tess_E   ;
+    else if( name.find( "comp" ) != std::string::npos ) return ::nyx::ShaderStage::Compute  ;
+    else if( name.find( "vert" ) != std::string::npos ) return ::nyx::ShaderStage::Vertex   ;
 
-    return ::nyx::ShaderStage::VERTEX ;
+    return ::nyx::ShaderStage::Vertex ;
   }
 
   ArgParserData::ArgParserData()
@@ -68,6 +70,7 @@ namespace nyx
     this->recursive_directory = ""        ;
     this->output_path         = "out.uwu" ;
     this->shaders_paths       = {}        ;
+    this->output_header       = false     ;
     this->verbose             = false     ;
   }
 
@@ -84,16 +87,17 @@ namespace nyx
   void ArgumentParser::parse( int num_inputs, const char** argv )
   {
     std::string buffer ;
-
+    
     for( unsigned index = 1; index < static_cast<unsigned>( num_inputs ); index++ )
     {
       buffer = std::string( argv[ index ] ) ;
-
+      
       if     ( buffer == "-i" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().include_directory   = std::string( argv[ index + 1 ] ) ; index++ ; }
       else if( buffer == "-o" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().output_path         = std::string( argv[ index + 1 ] ) ; index++ ; }
       else if( buffer == "-r" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().recursive_directory = std::string( argv[ index + 1 ] ) ; index++ ; }
-      else if( buffer == "-v"                                 ) { data().verbose             = true                             ;           }
-      else                                                      { data().shaders_paths.push_back( std::string( argv[ index ] ) )          ; }
+      else if( buffer == "-h"                                                    ) { data().output_header       = true                             ;           }
+      else if( buffer == "-v"                                                    ) { data().verbose             = true                             ;           }
+      else                                                                         { data().shaders_paths.push_back( std::string( argv[ index ] ) );           }
     }
   }
 
@@ -105,6 +109,11 @@ namespace nyx
   bool ArgumentParser::recursive() const
   {
     return data().recursive_directory != "" ;
+  }
+  
+  bool ArgumentParser::outputHeader() const
+  {
+    return data().output_header ;
   }
 
   const char* ArgumentParser::output() const
@@ -157,9 +166,10 @@ namespace nyx
     "              -> Sets the directory on the filesystem to use as the include directory for GLSL shader compilation.\n" 
     "           -v\n"                                                   
     "              -> Verbose output.\n"
+    "           -h\n"                                                   
+    "              -> Outputs a C-header containing the binary data of this file.\n"
     "           -o <name>\n"                                                   
-    "              -> The output name, if not using recursive. File extension is automatically appended to input\n"
-                                                     ) ;
+    "              -> The output name, if not using recursive. File extension is automatically appended to input\n" ) ;
     return program_usage.c_str() ;
   }
 

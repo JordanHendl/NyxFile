@@ -57,26 +57,28 @@ namespace nyx
     else { std::cout << "Unknown type : " << type_name << std::endl ; exit( -1 ) ; } ;
   }
 
-  /**
+  /** Structure to encompass a shader uniform.
    */
   struct Uniform
   {
-    unsigned    binding ;
-    unsigned    size    ;
-    UniformType type    ;
-    std::string name    ;
+    unsigned    binding ; ///< TODO
+    unsigned    size    ; ///< TODO
+    UniformType type    ; ///< TODO
+    std::string name    ; ///< TODO
   };
 
+  /** Structure to encompass a shader attribute.
+   */
   struct Attribute
   {
-    bool        input    ;
-    std::string name     ;
-    std::string type     ;
-    unsigned    size     ;
-    unsigned    location ;
+    bool        input    ; ///< TOOD
+    std::string name     ; ///< TOOD
+    std::string type     ; ///< TOOD
+    unsigned    size     ; ///< TOOD
+    unsigned    location ; ///< TOOD
   };
 
-  /** TODO
+  /** Structure to encompass a shader.
    */
   struct Shader
   {
@@ -95,7 +97,9 @@ namespace nyx
   {
     ShaderMap::const_iterator it ;
   };
-
+  
+  /** Container for a KgFile's data.
+   */
   struct NyxFileData
   {
       std::string include_directory ;
@@ -105,35 +109,35 @@ namespace nyx
      * @param stream The stream to read from
      * @return The string that has been read.
      */
-    std::string readString( std::ifstream& stream ) const ;
+    std::string readString( std::istream& stream ) const ;
 
     /** Method to read an unsigned integer from a file stream
      * @param stream The stream to read from.
      * @return The unsigned integer that has been read.
      */
-    unsigned readUnsigned( std::ifstream& stream ) const ;
+    unsigned readUnsigned( std::istream& stream ) const ;
 
     /** Method to read a boolean from a file stream.
      * @param stream The stream to read from.
      * @return The boolean that has been read.
      */
-    bool readBoolean( std::ifstream& stream ) const ;
+    bool readBoolean( std::istream& stream ) const ;
 
     /** Method to read a magic number from a file stream.
      * @param stream The stream to read from.
      * @return The magic number read.
      */
-    unsigned long long readMagic( std::ifstream& stream ) const ;
+    unsigned long long readMagic( std::istream& stream ) const ;
 
     /** Method to read SPIRV binary data from a file stream.
      * @param stream The stream to read from.
      * @param sz The side of the binary data that is in the stream.
      * @return Pointer to allocated memory of the loaded spirv binary.
      */
-    unsigned* readSpirv( std::ifstream& stream, unsigned sz ) const ;
+    unsigned* readSpirv( std::istream& stream, unsigned sz ) const ;
   };
 
-  std::string NyxFileData::readString( std::ifstream& stream ) const
+  std::string NyxFileData::readString( std::istream& stream ) const
   {
     unsigned    sz  ;
     std::string out ;
@@ -145,7 +149,7 @@ namespace nyx
     return out ;
   }
 
-  unsigned NyxFileData::readUnsigned( std::ifstream& stream ) const
+  unsigned NyxFileData::readUnsigned( std::istream& stream ) const
   {
     unsigned val ;
 
@@ -153,7 +157,7 @@ namespace nyx
     return val ;
   }
 
-  bool NyxFileData::readBoolean( std::ifstream& stream ) const
+  bool NyxFileData::readBoolean( std::istream& stream ) const
   {
     bool val ;
 
@@ -161,7 +165,7 @@ namespace nyx
     return val ;
   }
 
-  unsigned long long NyxFileData::readMagic( std::ifstream& stream ) const
+  unsigned long long NyxFileData::readMagic( std::istream& stream ) const
   {
     unsigned long long val ;
 
@@ -169,7 +173,7 @@ namespace nyx
     return val ;
   }
 
-  unsigned* NyxFileData::readSpirv( std::ifstream& stream, unsigned sz ) const
+  unsigned* NyxFileData::readSpirv( std::istream& stream, unsigned sz ) const
   {
     unsigned* data = new unsigned[ sz ] ;
     stream.read( (char*)data, sz * sizeof( unsigned ) ) ;
@@ -209,6 +213,11 @@ namespace nyx
     return data().it->second.spirv.data() ;
   }
 
+  const ShaderIterator& ShaderIterator::operator*() const
+  {
+    return *this ;
+  }
+  
   ShaderStage ShaderIterator::stage() const
   {
     return data().it->first ;
@@ -276,7 +285,7 @@ namespace nyx
     return *this ;
   }
 
-  bool ShaderIterator::operator!=( const ShaderIterator& input )
+  bool ShaderIterator::operator!=( const ShaderIterator& input ) const
   {
     return data().it != input.data().it ;
   }
@@ -299,6 +308,13 @@ namespace nyx
   NyxFile::~NyxFile()
   {
     delete this->compiler_data ;
+  }
+  
+  NyxFile& NyxFile::operator =( const NyxFile& file )
+  {
+    *this->compiler_data = *file.compiler_data ;
+    
+    return *this ;
   }
 
   void NyxFile::load( const char* path )
@@ -342,10 +358,10 @@ namespace nyx
            const unsigned uniform_binding = data().readUnsigned( stream ) ;
            const unsigned uniform_size    = data().readUnsigned( stream ) ;
 
-           uniform.name    = name                                                    ;
+           uniform.name    = name                                            ;
            uniform.type    = static_cast<::nyx::UniformType>( uniform_type ) ;
-           uniform.binding = uniform_binding                                         ;
-           uniform.size    = uniform_size                                            ;
+           uniform.binding = uniform_binding                                 ;
+           uniform.size    = uniform_size                                    ;
 
            shader.uniforms[ index ] = uniform ;
         }
@@ -368,6 +384,73 @@ namespace nyx
 
         data().map.insert( { shader.stage, shader } ) ;
       }
+    }
+  }
+  
+  void NyxFile::load( const unsigned char* bytes, unsigned size )
+  {
+    std::stringstream          stream  ;
+    std::string                str     ;
+    unsigned                   sz      ;
+    unsigned long long         magic   ;
+    ::nyx::Shader      shader  ;
+    ::nyx::Uniform     uniform ;
+    ::nyx::Attribute   attr    ;
+    data().map.clear() ;
+    
+    stream.write( reinterpret_cast<const char*>( bytes ), sizeof( unsigned char ) * size ) ;
+
+    magic = data().readMagic( stream ) ;        
+    if( magic != ::nyx::MAGIC ) /*TODO: LOG ERROR HERE */ return ;
+
+    sz = data().readUnsigned( stream ) ;
+    for( unsigned it = 0; it < sz; it++ )
+    {
+      const unsigned  spirv_size     = data().readUnsigned( stream             ) ;
+      const unsigned* spirv          = data().readSpirv   ( stream, spirv_size ) ;
+      const unsigned  stage          = data().readUnsigned( stream             ) ;
+      const unsigned  num_uniforms   = data().readUnsigned( stream             ) ;
+      const unsigned  num_attributes = data().readUnsigned( stream             ) ;
+
+      shader.spirv   .clear() ;
+      shader.uniforms.clear() ;
+
+      shader.spirv     .assign( spirv, spirv + spirv_size ) ;
+      shader.uniforms  .resize( num_uniforms              ) ;
+      shader.attributes.resize( num_attributes            ) ;
+      shader.stage = static_cast<::nyx::ShaderStage>( stage ) ;
+      for( unsigned index = 0; index < num_uniforms; index++ )
+      {
+         const std::string name         = data().readString  ( stream ) ;
+         const unsigned uniform_type    = data().readUnsigned( stream ) ;
+         const unsigned uniform_binding = data().readUnsigned( stream ) ;
+         const unsigned uniform_size    = data().readUnsigned( stream ) ;
+
+         uniform.name    = name                                            ;
+         uniform.type    = static_cast<::nyx::UniformType>( uniform_type ) ;
+         uniform.binding = uniform_binding                                 ;
+         uniform.size    = uniform_size                                    ;
+
+         shader.uniforms[ index ] = uniform ;
+      }
+      for( unsigned index = 0; index < num_attributes; index++ )
+      {
+        const std::string name  = data().readString  ( stream ) ;
+        const std::string type  = data().readString  ( stream ) ;
+        const unsigned    size  = data().readUnsigned( stream ) ;
+        const unsigned location = data().readUnsigned( stream ) ;
+        const bool     input    = data().readBoolean ( stream ) ;
+
+        attr.name     = name     ;
+        attr.location = location ;
+        attr.size     = size     ;
+        attr.type     = type     ;
+        attr.input    = input    ;
+
+        shader.attributes[ index ] = attr ;
+      }
+
+      data().map.insert( { shader.stage, shader } ) ;
     }
   }
 

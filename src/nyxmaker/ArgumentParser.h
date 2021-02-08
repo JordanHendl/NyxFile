@@ -14,9 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef NYX_FILE_ARG_PARSER_H
-#define NYX_FILE_ARG_PARSER_H
+#pragma once
 
 namespace nyx
 {
@@ -49,6 +47,11 @@ namespace nyx
        * @return Whether or not the shader generation is to look recursively for shaders.
        */
       bool recursive() const ;
+      
+      /** Method to retrieve whether or not this program should output a header file containing the shader data.
+       * @return Whether or not this program should output a header file containing this file data.
+       */
+      bool outputHeader() const ;
 
       /** Method to retrieve the directory to use for recursive loading.
        * @return const char* The string to the path on the filesystem to recursively look through.
@@ -109,4 +112,3 @@ namespace nyx
       const ArgParserData& data() const ;
   };
 }
-#endif

@@ -6,7 +6,7 @@ SET( NYX_FILE_MAKER_LIBRARIES
      stdc++fs
     )
 
-ADD_EXECUTABLE       ( nyxmaker main.cpp ArgumentParser.cpp ArgumentParser.h )
+ADD_EXECUTABLE       ( nyxmaker main.cpp ArgumentParser.cpp HeaderMaker.cpp ArgumentParser.h HeaderMaker.h )
 TARGET_LINK_LIBRARIES( nyxmaker PUBLIC  ${NYX_FILE_MAKER_LIBRARIES}          )
 
 IF( UNIX AND NOT APPLE )

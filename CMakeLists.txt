@@ -28,8 +28,8 @@ LIST( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 
 
 # Build options
-OPTION( BUILD_NYXMAKER "Whether or not the nyxmaker executable will be built" ON )
-OPTION( BUILD_RELEASE "Whether or not the to build for release."              ON )
+OPTION( BUILD_NYXMAKER "Whether or not the nyxmaker executable will be built" ON  )
+OPTION( BUILD_RELEASE "Whether or not the to build for release."              OFF )
 
 PROJECT( nyxfile CXX )
 INCLUDE( Message  )

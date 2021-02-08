@@ -19,11 +19,11 @@
 #include "../nyxwriter/NyxWriter.h"
 #include "../nyxfile/NyxFile.h"
 #include "ArgumentParser.h"
+#include "HeaderMaker.h"
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-
 #if defined ( __unix__ ) || defined( _WIN32 )
   constexpr const char* COLOR_END    = "\x1B[m"       ;
   constexpr const char* COLOR_RED    = "\u001b[31m"   ;
@@ -65,14 +65,14 @@ std::string getExtension( const std::string& name )
 
 ::nyx::ShaderStage extensionToStage( std::string extension )
 {
-       if( extension == "frag" ) return ::nyx::ShaderStage::FRAGMENT      ;
-  else if( extension == "geom" ) return ::nyx::ShaderStage::GEOMETRY      ;
-  else if( extension == "tesc" ) return ::nyx::ShaderStage::TESSALATION_C ;
-  else if( extension == "tess" ) return ::nyx::ShaderStage::TESSELATION_E ;
-  else if( extension == "comp" ) return ::nyx::ShaderStage::COMPUTE       ;
-  else if( extension == "vert" ) return ::nyx::ShaderStage::VERTEX        ;
+       if( extension == "frag" ) return ::nyx::ShaderStage::Fragment ;
+  else if( extension == "geom" ) return ::nyx::ShaderStage::Geometry ;
+  else if( extension == "tesc" ) return ::nyx::ShaderStage::Tess_C   ;
+  else if( extension == "tess" ) return ::nyx::ShaderStage::Tess_E   ;
+  else if( extension == "comp" ) return ::nyx::ShaderStage::Compute  ;
+  else if( extension == "vert" ) return ::nyx::ShaderStage::Vertex   ;
   
-  return ::nyx::ShaderStage::VERTEX ;
+  return ::nyx::ShaderStage::Vertex ;
 }
 
 int main( int argc, const char** argv )
@@ -129,7 +129,12 @@ int main( int argc, const char** argv )
     }
     
     shader.save( parser.output() ) ;
-    
+    if( parser.outputHeader() )
+    {
+      nyx::HeaderMaker maker ;
+      maker.make( parser.output() ) ;
+    }
+
     if( parser.verbose() )
     {
       shader_validator.load( parser.output() ) ;

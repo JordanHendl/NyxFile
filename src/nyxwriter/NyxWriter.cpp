@@ -285,12 +285,12 @@ namespace nyx
   {
     switch( stage )
     {
-      case ShaderStage::VERTEX        : eshlang = EShLangVertex         ; break ; 
-      case ShaderStage::COMPUTE       : eshlang = EShLangCompute        ; break ; 
-      case ShaderStage::FRAGMENT      : eshlang = EShLangFragment       ; break ; 
-      case ShaderStage::GEOMETRY      : eshlang = EShLangGeometry       ; break ; 
-      case ShaderStage::TESSALATION_C : eshlang = EShLangTessControl    ; break ; 
-      case ShaderStage::TESSELATION_E : eshlang = EShLangTessEvaluation ; break ; 
+      case ShaderStage::Vertex    : eshlang = EShLangVertex         ; break ; 
+      case ShaderStage::Compute   : eshlang = EShLangCompute        ; break ; 
+      case ShaderStage::Fragment  : eshlang = EShLangFragment       ; break ; 
+      case ShaderStage::Geometry  : eshlang = EShLangGeometry       ; break ; 
+      case ShaderStage::Tess_C    : eshlang = EShLangTessControl    ; break ; 
+      case ShaderStage::Tess_E    : eshlang = EShLangTessEvaluation ; break ; 
       default                         : eshlang = EShLangCount          ; break ;
     }
   }
@@ -299,13 +299,13 @@ namespace nyx
   {
     switch( stage )
     {
-      case ShaderStage::VERTEX        : str = "Vertex"               ; break ; 
-      case ShaderStage::COMPUTE       : str = "Compute"              ; break ; 
-      case ShaderStage::FRAGMENT      : str = "Fragment"             ; break ; 
-      case ShaderStage::GEOMETRY      : str = "Geometry"             ; break ; 
-      case ShaderStage::TESSALATION_C : str = "Tessalation_Control"  ; break ; 
-      case ShaderStage::TESSELATION_E : str = "Tesselation_Evaluate" ; break ; 
-      default                         : str = ""                     ; break ;
+      case ShaderStage::Vertex   : str = "Vertex"               ; break ; 
+      case ShaderStage::Compute  : str = "Compute"              ; break ; 
+      case ShaderStage::Fragment : str = "Fragment"             ; break ; 
+      case ShaderStage::Geometry : str = "Geometry"             ; break ; 
+      case ShaderStage::Tess_C   : str = "Tessalation_Control"  ; break ; 
+      case ShaderStage::Tess_E   : str = "Tesselation_Evaluate" ; break ; 
+      default                    : str = ""                     ; break ;
     }
   }
 
@@ -666,7 +666,7 @@ namespace nyx
   void NyxWriter::compile( ShaderStage stage, const char* shader_data )
   {
     this->data().loadShader                                         ( shader_data, stage ) ;
-    if( stage != ShaderStage::COMPUTE ) this->data().parseAttributes( shader_data, stage ) ;
+    if( stage != ShaderStage::Compute ) this->data().parseAttributes( shader_data, stage ) ;
   }
 
   NyxWriterData& NyxWriter::data()
