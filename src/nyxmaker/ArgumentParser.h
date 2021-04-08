@@ -62,7 +62,9 @@ namespace nyx
        * @return Whether or not the NyxMaker program should produce verbose output.
        */
       bool verbose() const ;
-
+      
+      bool buildDebug() const ;
+      bool optimizeSize() const ;
       /** Method to get the include directory, if any, set by the passed in arguments.
        * @return The string representation of the include directory on the file systems.
        */

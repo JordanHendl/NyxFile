@@ -60,7 +60,9 @@ namespace nyx
        * @return The number of shaders compiled into this object.
        */
       unsigned size() const ;
-
+      
+      void setBuildDebug( bool flag ) ;
+      void setOptimizeSize( bool flag ) ;
     private:
 
         /** Forward declared structure containing this object's data.

@@ -87,7 +87,10 @@ int main( int argc, const char** argv )
   
   index = 0 ;
   parser.parse( argc, argv ) ;
+  shader.setBuildDebug      ( parser.buildDebug()          ) ;
+  shader.setOptimizeSize    ( parser.optimizeSize()        ) ;
   shader.setIncludeDirectory( parser.getIncludeDirectory() ) ;
+  
   if( parser.valid() )
   {
     if( parser.recursive() )

@@ -233,6 +233,9 @@ namespace nyx
     AttributeList inputs            ;
     AttributeList outputs           ;
 
+    bool          build_debug       = true  ;
+    bool          optimize_size     = false ;
+    
     /** Method to load a shader.
      * @param data The byte data of the GLSL shader.
      * @param type The type of shader being loaded.
@@ -365,100 +368,7 @@ namespace nyx
 
       this->outputs.push_back( attribute ) ;
     }
-      
   }
-  
-//  void NyxWriterData::parseAttributes( const char* data, ShaderStage stage )
-//  {
-//    auto shader = this->map.find( stage ) ;
-//
-//    std::vector<std::string> history    ;
-//    std::stringstream        file_data  ;
-//    std::stringstream        line_data  ;
-//    std::string              token      ;
-//    std::string              line       ;
-//    Attribute                attr       ;
-//    unsigned                 position   ;
-//    unsigned                 location   ;
-//    
-//    location = 0 ;
-//    position = 0 ;
-//    history.resize( 3 ) ;
-//    if( shader != this->map.end() )
-//    {
-//      // Push all input into stream.
-//      line_data << data ;
-//
-//      // While theres data to be parsed.
-//      while( std::getline( line_data, line ) )
-//      {
-//
-//        // Push a single line of code into the stream.
-//
-//        file_data.str("") ;
-//        file_data.clear() ;
-//        file_data << line ;
-//
-//        // Look for inputs.
-//        while( !file_data.eof() )
-//        {
-//          token = "" ;
-//          file_data >> token ; // Get Type.
-//
-//          // If we're a comment then just break.
-//          if( token.find( "//") != std::string::npos ) break ;
-//
-//          if( token == "in"  )
-//          {
-//            for( unsigned i = 0; i < history.size(); i++ )
-//            {
-//              if( history[ i ] == "=" )
-//              {
-//                location = i + 1 == history.size() ? std::atoi( history[ 0 ].c_str() ) : std::atoi( history[ i + 1 ].c_str() ) ;
-//              }
-//            }
-//
-//            /// Get type information.
-//            file_data >> token                    ;
-//            attr.type     = token                 ; 
-//            attr.size     = sizeFromType( token ) ;
-//            attr.input    = true                  ;
-//            attr.location = location              ;
-//
-//            file_data >> token ;
-//            attr.name  = token ;
-//
-//            shader->second.attributes.push_back( attr ) ;
-//          }
-//          else if( token == "out" )
-//          {            
-//            for( unsigned i = 0; i < history.size(); i++ )
-//            {
-//              if( history[ i ] == "=" ) 
-//              {
-//                location = i + 1 == history.size() ? std::atoi( history[ 0 ].c_str() ) : std::atoi( history[ i + 1 ].c_str() ) ;
-//              }
-//            }
-//            line = "" ;
-//            
-//            /// Get type information.
-//            file_data >> token                    ;
-//            attr.type     = token                 ; 
-//            attr.size     = sizeFromType( token ) ;
-//            attr.input    = false                 ;
-//            attr.location = location              ;
-//
-//            file_data >> token ;
-//            attr.name  = token ;
-//
-//            shader->second.attributes.push_back( attr ) ;
-//          }
-//          history[ position ] = token ;
-//          position = ( position + 1 ) % history.size() ;
-//        }
-//      }
-//    }
-//  }
 
   void NyxWriterData::writeString( std::ofstream& stream, std::string val ) const
   {
@@ -562,6 +472,9 @@ namespace nyx
       glslang::InitializeProcess() ;
       glslang_initialized = true ;
     }
+    options.generateDebugInfo = this->build_debug   ;
+    options.optimizeSize      = this->optimize_size ;
+    options.validate          = true                ;
 
     lang_type  << type ;
     stage_name << type ;
@@ -607,7 +520,7 @@ namespace nyx
       std::cout << program.getInfoDebugLog()                  << std::endl ;
       exit( -1 ) ;
     }
-
+    
     glslang::GlslangToSpv( *program.getIntermediate( lang_type ), shader.spirv, &logger, &options ) ;
 
     program.buildReflection() ;
@@ -735,7 +648,16 @@ namespace nyx
       exit( -1 ) ;
     }
   }
-
+  
+  void NyxWriter::setBuildDebug(bool flag)
+  {
+    data().build_debug = flag ;
+  }
+  
+  void NyxWriter::setOptimizeSize(bool flag)
+  {
+    data().optimize_size = flag ;
+  }
   void NyxWriter::setIncludeDirectory( const char* include_directory )
   {
     data().include_directory = include_directory ;

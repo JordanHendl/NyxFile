@@ -45,6 +45,8 @@ namespace nyx
     std::string              output_path         ;
     bool                     output_header       ;
     bool                     verbose             ;
+    bool                     build_debug         ;
+    bool                     optimize_size       ;
     std::vector<std::string> shaders_paths       ;
 
     ArgParserData() ;
@@ -76,6 +78,8 @@ namespace nyx
     this->shaders_paths       = {}        ;
     this->output_header       = false     ;
     this->verbose             = false     ;
+    this->build_debug         = true      ;
+    this->optimize_size       = false     ;
   }
   
   void ArgParserData::printVersion()
@@ -107,6 +111,8 @@ namespace nyx
       else if( buffer == "-o" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().output_path         = std::string( argv[ index + 1 ] ) ; index++ ; }
       else if( buffer == "-r" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().recursive_directory = std::string( argv[ index + 1 ] ) ; index++ ; }
       else if( buffer == "-h"                                                    ) { data().output_header       = true                             ;           }
+      else if( buffer == "-release"                                              ) { data().build_debug         = false                            ;           }
+      else if( buffer == "-size_opt"                                             ) { data().optimize_size       = true                             ;           }
       else if( buffer == "-v"                                                    ) { data().verbose             = true                             ;           }
       else if( buffer == "--version"                                             ) { data().printVersion() ;                                                   }
       else                                                                         { data().shaders_paths.push_back( std::string( argv[ index ] ) );           }
@@ -116,6 +122,16 @@ namespace nyx
   bool ArgumentParser::verbose() const
   {
     return data().verbose ;
+  }
+  
+  bool ArgumentParser::buildDebug() const
+  {
+    return data().build_debug ;
+  }
+  
+  bool ArgumentParser::optimizeSize() const
+  {
+    return data().optimize_size ;
   }
 
   bool ArgumentParser::recursive() const
