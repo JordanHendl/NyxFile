@@ -40,7 +40,8 @@ namespace nyx
   struct Shader ;
   typedef std::map<ShaderStage, Shader> ShaderMap ;
 
-  const unsigned long long MAGIC = 0x555755200d0a ;
+  constexpr unsigned long long MAGIC           = 0x555755200d0a ;
+  constexpr unsigned           NYXFILE_VERSION = 1              ;
 
   const static constexpr TBuiltInResource DefaultTBuiltInResource = 
   {
@@ -197,7 +198,6 @@ namespace nyx
    */
   struct Attribute
   {
-    bool        input    ;
     std::string name     ;
     std::string type     ;
     unsigned    size     ;
@@ -210,10 +210,8 @@ namespace nyx
   {
     typedef std::vector<unsigned>   SpirVData     ;
     typedef std::vector<Uniform>    UniformList   ;
-    typedef std::vector<Attribute>  AttributeList ;
 
     UniformList   uniforms   ;
-    AttributeList attributes ;
     SpirVData     spirv      ;
     ShaderStage   stage      ;
     std::string   name       ;
@@ -228,8 +226,12 @@ namespace nyx
 
   struct NyxWriterData
   {
-    std::string include_directory ; ///< The include directory for the shaders being compiled.
-    ShaderMap   map               ; ///< The map of shader types to shader stages.
+    typedef std::vector<Attribute>  AttributeList ;
+    
+    std::string   include_directory ; ///< The include directory for the shaders being compiled.
+    ShaderMap     map               ; ///< The map of shader types to shader stages.
+    AttributeList inputs            ;
+    AttributeList outputs           ;
 
     /** Method to load a shader.
      * @param data The byte data of the GLSL shader.
@@ -242,7 +244,9 @@ namespace nyx
      * @param stage The type of shader being loaded.
      */
     void parseAttributes( const char* data, ShaderStage stage ) ;
-
+    
+    void parseAttributes( Shader& shader, glslang::TProgram& program ) ;
+    
     /** Method to generate descriptor set information for each shader.
      * @param map The shader map to store the uniform information into.
      * @param program The GLSL program to use for GLSL uniform reflection.
@@ -291,7 +295,7 @@ namespace nyx
       case ShaderStage::Geometry  : eshlang = EShLangGeometry       ; break ; 
       case ShaderStage::Tess_C    : eshlang = EShLangTessControl    ; break ; 
       case ShaderStage::Tess_E    : eshlang = EShLangTessEvaluation ; break ; 
-      default                         : eshlang = EShLangCount          ; break ;
+      default                     : eshlang = EShLangCount          ; break ;
     }
   }
 
@@ -308,98 +312,153 @@ namespace nyx
       default                    : str = ""                     ; break ;
     }
   }
-
-  void NyxWriterData::parseAttributes( const char* data, ShaderStage stage )
+  void NyxWriterData::parseAttributes( Shader& shader, glslang::TProgram& program )
   {
-    auto shader = this->map.find( stage ) ;
-
-    std::vector<std::string> history    ;
-    std::stringstream        file_data  ;
-    std::stringstream        line_data  ;
-    std::string              token      ;
-    std::string              line       ;
-    Attribute                attr       ;
-    unsigned                 position   ;
-    unsigned                 location   ;
+    Attribute attribute ;
     
-    location = 0 ;
-    position = 0 ;
-    history.resize( 3 ) ;
-    if( shader != this->map.end() )
+    for( unsigned index = 0; index < program.getNumPipeInputs(); index++ )
     {
-      // Push all input into stream.
-      line_data << data ;
-
-      // While theres data to be parsed.
-      while( std::getline( line_data, line ) )
-      {
-
-        // Push a single line of code into the stream.
-
-        file_data.str("") ;
-        file_data.clear() ;
-        file_data << line ;
-
-        // Look for inputs.
-        while( !file_data.eof() )
-        {
-          token = "" ;
-          file_data >> token ; // Get Type.
-
-          // If we're a comment then just break.
-          if( token.find( "//") != std::string::npos ) break ;
-
-          if( token == "in"  )
-          {
-            for( unsigned i = 0; i < history.size(); i++ )
-            {
-              if( history[ i ] == "=" )
-              {
-                location = i + 1 == history.size() ? std::atoi( history[ 0 ].c_str() ) : std::atoi( history[ i + 1 ].c_str() ) ;
-              }
-            }
-
-            /// Get type information.
-            file_data >> token                    ;
-            attr.type     = token                 ; 
-            attr.size     = sizeFromType( token ) ;
-            attr.input    = true                  ;
-            attr.location = location              ;
-
-            file_data >> token ;
-            attr.name  = token ;
-
-            shader->second.attributes.push_back( attr ) ;
-          }
-          else if( token == "out" )
-          {            
-            for( unsigned i = 0; i < history.size(); i++ )
-            {
-              if( history[ i ] == "=" ) 
-              {
-                location = i + 1 == history.size() ? std::atoi( history[ 0 ].c_str() ) : std::atoi( history[ i + 1 ].c_str() ) ;
-              }
-            }
-            line = "" ;
-            
-            /// Get type information.
-            file_data >> token                    ;
-            attr.type     = token                 ; 
-            attr.size     = sizeFromType( token ) ;
-            attr.input    = false                 ;
-            attr.location = location              ;
-
-            file_data >> token ;
-            attr.name  = token ;
-
-            shader->second.attributes.push_back( attr ) ;
-          }
-          history[ position ] = token ;
-          position = ( position + 1 ) % history.size() ;
-        }
+      std::stringstream str ;
+      auto& input = program.getPipeInput( index ) ;
+      auto* type  = input.getType()               ;
+      
+      if( type->isVector() )
+      { 
+        str << "vec"                 ;
+        str << type->getVectorSize() ;
       }
+      else if( type->isMatrix() )
+      {
+        str << "mat"                 ;
+        str << type->getMatrixRows() ;
+      }
+
+      attribute.location = input.index                             ;
+      attribute.name     = input.name                              ;
+      attribute.size     = type->getVectorSize() * sizeof( float ) ;
+      attribute.type     = str.str()                               ;
+      
+      this->inputs.push_back( attribute ) ;
     }
+    
+    for( unsigned index = 0; index < program.getNumPipeOutputs(); index++ )
+    {
+      std::stringstream str ;
+      auto& output = program.getPipeOutput( index ) ;
+      auto* type   = output.getType()               ;
+      
+      if( type->isVector() )
+      { 
+        str << "vec"                 ;
+        str << type->getVectorSize() ;
+      }
+      else if( type->isMatrix() )
+      {
+        str << "mat"                 ;
+        str << type->getMatrixRows() ;
+      }
+      
+      attribute.location = output.index                            ;
+      attribute.name     = output.name                             ;
+      attribute.size     = type->getVectorSize() * sizeof( float ) ;
+      attribute.type     = str.str()                               ;
+
+      this->outputs.push_back( attribute ) ;
+    }
+      
   }
+  
+//  void NyxWriterData::parseAttributes( const char* data, ShaderStage stage )
+//  {
+//    auto shader = this->map.find( stage ) ;
+//
+//    std::vector<std::string> history    ;
+//    std::stringstream        file_data  ;
+//    std::stringstream        line_data  ;
+//    std::string              token      ;
+//    std::string              line       ;
+//    Attribute                attr       ;
+//    unsigned                 position   ;
+//    unsigned                 location   ;
+//    
+//    location = 0 ;
+//    position = 0 ;
+//    history.resize( 3 ) ;
+//    if( shader != this->map.end() )
+//    {
+//      // Push all input into stream.
+//      line_data << data ;
+//
+//      // While theres data to be parsed.
+//      while( std::getline( line_data, line ) )
+//      {
+//
+//        // Push a single line of code into the stream.
+//
+//        file_data.str("") ;
+//        file_data.clear() ;
+//        file_data << line ;
+//
+//        // Look for inputs.
+//        while( !file_data.eof() )
+//        {
+//          token = "" ;
+//          file_data >> token ; // Get Type.
+//
+//          // If we're a comment then just break.
+//          if( token.find( "//") != std::string::npos ) break ;
+//
+//          if( token == "in"  )
+//          {
+//            for( unsigned i = 0; i < history.size(); i++ )
+//            {
+//              if( history[ i ] == "=" )
+//              {
+//                location = i + 1 == history.size() ? std::atoi( history[ 0 ].c_str() ) : std::atoi( history[ i + 1 ].c_str() ) ;
+//              }
+//            }
+//
+//            /// Get type information.
+//            file_data >> token                    ;
+//            attr.type     = token                 ; 
+//            attr.size     = sizeFromType( token ) ;
+//            attr.input    = true                  ;
+//            attr.location = location              ;
+//
+//            file_data >> token ;
+//            attr.name  = token ;
+//
+//            shader->second.attributes.push_back( attr ) ;
+//          }
+//          else if( token == "out" )
+//          {            
+//            for( unsigned i = 0; i < history.size(); i++ )
+//            {
+//              if( history[ i ] == "=" ) 
+//              {
+//                location = i + 1 == history.size() ? std::atoi( history[ 0 ].c_str() ) : std::atoi( history[ i + 1 ].c_str() ) ;
+//              }
+//            }
+//            line = "" ;
+//            
+//            /// Get type information.
+//            file_data >> token                    ;
+//            attr.type     = token                 ; 
+//            attr.size     = sizeFromType( token ) ;
+//            attr.input    = false                 ;
+//            attr.location = location              ;
+//
+//            file_data >> token ;
+//            attr.name  = token ;
+//
+//            shader->second.attributes.push_back( attr ) ;
+//          }
+//          history[ position ] = token ;
+//          position = ( position + 1 ) % history.size() ;
+//        }
+//      }
+//    }
+//  }
 
   void NyxWriterData::writeString( std::ofstream& stream, std::string val ) const
   {
@@ -434,7 +493,7 @@ namespace nyx
   {
     std::string name    ; 
     Uniform     uniform ;
-
+    
     for( unsigned i = 0; i < static_cast<unsigned>( program.getNumUniformVariables() ); i++ )
     {
       name = std::string( program.getUniformTType( i )->getCompleteString().c_str() ) ;
@@ -554,6 +613,7 @@ namespace nyx
     program.buildReflection() ;
     shader.stage = type ;
     this->generateDescriptorSetBindings( shader, program ) ;
+    if( type != ShaderStage::Compute ) this->parseAttributes( shader, program ) ;
     this->map.insert( { type, shader } ) ;
    }
   
@@ -572,28 +632,68 @@ namespace nyx
     unsigned  spirv_size     ;
     unsigned* spirv          ;
     unsigned  stage          ;
+    unsigned  version        ;
     unsigned  num_uniforms   ;
-    unsigned  num_attributes ;
+    unsigned  num_inputs     ;
+    unsigned  num_outputs    ;
     
     std::string uniform_name    ;
     unsigned    uniform_type    ;
     unsigned    uniform_binding ;
     unsigned    uniform_size    ;
     
-    std::string attribute_name     ;
-    std::string attribute_type     ;
-    unsigned    attribute_bytesize ;
-    unsigned    attribute_location ;
-    bool        attribute_input    ;
+    std::string input_name      ;
+    std::string input_type      ;
+    unsigned    input_bytesize  ;
+    unsigned    input_location  ;
+    
+    std::string output_name     ;
+    std::string output_type     ;
+    unsigned    output_bytesize ;
+    unsigned    output_location ;
     
     std::ofstream stream ;
 
     stream.open( path, std::ios::binary ) ;
 
+    num_inputs  = data().inputs .size() ;
+    num_outputs = data().outputs.size() ;
+    
+    version = NYXFILE_VERSION ;
+    
     if( stream )
     {
-      data().writeMagic   ( stream, MAGIC   ) ;
-      data().writeUnsigned( stream, size()  ) ;
+      data().writeMagic   ( stream, MAGIC       ) ;
+      data().writeUnsigned( stream, version     ) ;
+      data().writeUnsigned( stream, size()      ) ;
+      data().writeUnsigned( stream, num_inputs  ) ;
+      data().writeUnsigned( stream, num_outputs ) ;
+
+      for( unsigned index = 0; index < num_inputs; index++ )
+      {
+        input_name     = data().inputs[ index ].name     ;
+        input_type     = data().inputs[ index ].type     ;
+        input_bytesize = data().inputs[ index ].size     ;
+        input_location = data().inputs[ index ].location ;
+
+        data().writeString  ( stream, input_name     ) ;
+        data().writeString  ( stream, input_type     ) ;
+        data().writeUnsigned( stream, input_bytesize ) ;
+        data().writeUnsigned( stream, input_location ) ;
+      }
+      
+      for( unsigned index = 0; index < num_outputs; index++ )
+      {
+        output_name     = data().outputs[ index ].name     ;
+        output_type     = data().outputs[ index ].type     ;
+        output_bytesize = data().outputs[ index ].size     ;
+        output_location = data().outputs[ index ].location ;
+
+        data().writeString  ( stream, output_name     ) ;
+        data().writeString  ( stream, output_type     ) ;
+        data().writeUnsigned( stream, output_bytesize ) ;
+        data().writeUnsigned( stream, output_location ) ;
+      }
 
       for( auto it = data().map.begin(); it != data().map.end(); ++it )
       {
@@ -601,14 +701,12 @@ namespace nyx
         spirv          = it->second.spirv.data()      ;
         stage          = it->second.stage             ;
         num_uniforms   = it->second.uniforms.size()   ;
-        num_attributes = it->second.attributes.size() ;
 
         data().writeUnsigned( stream, spirv_size        ) ; // Size of SPIRV code.
         data().writeSpirv   ( stream, spirv_size, spirv ) ; // SPIRV Code.
+        data().writeUnsigned( stream, stage        ) ; // Shader stage.
+        data().writeUnsigned( stream, num_uniforms ) ; // Number of Uniforms.
 
-        data().writeUnsigned( stream, stage          ) ; // Shader stage.
-        data().writeUnsigned( stream, num_uniforms   ) ; // Number of Uniforms.
-        data().writeUnsigned( stream, num_attributes ) ; // Number of Attributes.
         for( unsigned index = 0; index < num_uniforms; index++ )
         {
           uniform_name    = it->second.uniforms[ index ].name    ;
@@ -620,21 +718,6 @@ namespace nyx
           data().writeUnsigned( stream, uniform_type    ) ; // Uniform Type.
           data().writeUnsigned( stream, uniform_binding ) ; // Uniform Binding.
           data().writeUnsigned( stream, uniform_size    ) ; // Uniform Size
-        }
-
-        for( unsigned index = 0; index < num_attributes; index ++ )
-        {
-          attribute_name     = it->second.attributes[ index ].name     ;
-          attribute_type     = it->second.attributes[ index ].type     ;
-          attribute_bytesize = it->second.attributes[ index ].size     ;
-          attribute_location = it->second.attributes[ index ].location ;
-          attribute_input    = it->second.attributes[ index ].input    ;
-
-          data().writeString  ( stream, attribute_name     ) ;
-          data().writeString  ( stream, attribute_type     ) ;
-          data().writeUnsigned( stream, attribute_bytesize ) ;
-          data().writeUnsigned( stream, attribute_location ) ;
-          data().writeBoolean ( stream, attribute_input    ) ;
         }
       }
     }
@@ -666,7 +749,6 @@ namespace nyx
   void NyxWriter::compile( ShaderStage stage, const char* shader_data )
   {
     this->data().loadShader                                         ( shader_data, stage ) ;
-    if( stage != ShaderStage::Compute ) this->data().parseAttributes( shader_data, stage ) ;
   }
 
   NyxWriterData& NyxWriter::data()

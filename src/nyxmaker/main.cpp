@@ -139,24 +139,32 @@ int main( int argc, const char** argv )
     {
       shader_validator.load( parser.output() ) ;
       std::cout << COLOR_BOLD << "Include Directory: " << parser.getIncludeDirectory() << "\n" << COLOR_END << std::endl ;
+      
+      if( shader_validator.numInputs() != 0 ) std::cout << COLOR_BOLD << "Pipeline Inputs: \n\n" << COLOR_END ;
+      for( unsigned i = 0; i < shader_validator.numInputs(); i++ )
+      {
+        std::cout << COLOR_BOLD << "-- Name: " << shader_validator.inputName( i ) << "\n" ;
+        std::cout << COLOR_BOLD << "--   ├─Input Type      : " << shader_validator.inputType    ( i ) << COLOR_END << "\n" ;
+        std::cout << COLOR_BOLD << "--   ├─Input Byte Size : " << shader_validator.inputByteSize( i ) << COLOR_END << "\n" ;
+        std::cout << COLOR_BOLD << "--   └─Input Location  : " << shader_validator.inputLocation( i ) << COLOR_END << "\n" ;
+        std::cout << "\n" ;
+      }
+      
+      if( shader_validator.numOutputs() != 0 ) std::cout << COLOR_BOLD << "Pipeline Outputs: \n\n" << COLOR_END ;
+      for( unsigned i = 0; i < shader_validator.numOutputs(); i++ )
+      {
+        std::cout << COLOR_BOLD << "-- Name: " << shader_validator.outputName( i ) << "\n" ;
+        std::cout << COLOR_BOLD << "--   ├─Output Type      : " << shader_validator.outputType    ( i ) << COLOR_END << "\n" ;
+        std::cout << COLOR_BOLD << "--   ├─Output Byte Size : " << shader_validator.outputByteSize( i ) << COLOR_END << "\n" ;
+        std::cout << COLOR_BOLD << "--   └─Output Location  : " << shader_validator.outputLocation( i ) << COLOR_END << "\n" ;
+        std::cout << "\n" ;
+      }
+      
       for( auto sh = shader_validator.begin(); sh != shader_validator.end(); ++sh )
       {
         std::cout << COLOR_BOLD << "Shader: " << parser.getFilePath( index++ )  << COLOR_END << "\n"   ;
         std::cout << COLOR_BOLD << "  ├─Shader Stage:   " << sh.stage()         << COLOR_END << "\n"   ;
-        std::cout << COLOR_BOLD << "  ├─Num Uniforms:   " << sh.numUniforms()   << COLOR_END << "\n"   ;
-        std::cout << COLOR_BOLD << "  └─Num Attributes: " << sh.numAttributes() << COLOR_END << "\n\n" ;
-        
-        if( sh.numAttributes() != 0 ) std::cout << COLOR_BOLD << "Attributes: \n\n" << COLOR_END ;
-        for( unsigned i = 0; i < sh.numAttributes(); i++ )
-        {
-          std::cout << COLOR_BOLD << "-- Name: " << sh.attributeName( i ) << "\n" ;
-          std::cout << COLOR_BOLD << "--   ├─Attribute Type     : " << sh.attributeType    ( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_BOLD << "--   ├─Attribute Size     : " << sh.attributeByteSize( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_BOLD << "--   ├─Attribute Location : " << sh.attributeLocation( i ) << COLOR_END << "\n" ;
-          std::cout << COLOR_BOLD << "--   └─Attribute is INPUT : " << sh.attributeIsInput ( i ) << COLOR_END << "\n" ;
-          std::cout << "\n" ;
-        }
-        
+        std::cout << COLOR_BOLD << "  └─Num Uniforms:   " << sh.numUniforms()   << COLOR_END << "\n"   ;
         
         if( sh.numUniforms() != 0 ) std::cout << COLOR_BOLD << "Uniforms: \n\n" << COLOR_END ;
         for( unsigned i = 0; i < sh.numUniforms(); i++ )

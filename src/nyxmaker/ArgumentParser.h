@@ -83,7 +83,7 @@ namespace nyx
        * @return const char* The string message containing the usage of this program.
        */
       const char* usage() const ;
-
+      
       /** Method to retrieve the shader type of the input at the specified index.
        * @param index The index of input to retrieve the shader type of.
        * @return int The shader type of the input, as directed by the extension.

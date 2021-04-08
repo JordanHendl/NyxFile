@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 
 namespace nyx
 {
@@ -34,7 +35,9 @@ namespace nyx
    * @return ::tools::shader::ShaderStage 
    */
   static ::nyx::ShaderStage nameToStage( std::string extension ) ;
-
+  
+  const char* VERSION_STR = "1.0.0" ;
+  
   struct ArgParserData
   {
     std::string              include_directory   ;
@@ -45,6 +48,7 @@ namespace nyx
     std::vector<std::string> shaders_paths       ;
 
     ArgParserData() ;
+    void printVersion() ;
   };
 
   std::string getExtension( const std::string& name )
@@ -73,6 +77,13 @@ namespace nyx
     this->output_header       = false     ;
     this->verbose             = false     ;
   }
+  
+  void ArgParserData::printVersion()
+  {
+    std::cout << "NyxMaker Version " << VERSION_STR << "\n"       ;
+    std::cout << "Copyright (C) Jordan Hendl ( Overcasterisk )\n" ;
+    exit( 0 ) ;
+  }
 
   ArgumentParser::ArgumentParser()
   {
@@ -97,6 +108,7 @@ namespace nyx
       else if( buffer == "-r" && index + 1 < static_cast<unsigned>( num_inputs ) ) { data().recursive_directory = std::string( argv[ index + 1 ] ) ; index++ ; }
       else if( buffer == "-h"                                                    ) { data().output_header       = true                             ;           }
       else if( buffer == "-v"                                                    ) { data().verbose             = true                             ;           }
+      else if( buffer == "--version"                                             ) { data().printVersion() ;                                                   }
       else                                                                         { data().shaders_paths.push_back( std::string( argv[ index ] ) );           }
     }
   }
